@@ -38,14 +38,14 @@ export function TableView() {
   const rowHeightClass = tableDensity === 'comfortable' ? 'h-11 py-2 text-sm' : 'h-8 py-1 text-xs';
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6">
+    <div className="mx-auto max-w-7xl px-3 sm:px-6 py-6 space-y-6 overflow-hidden">
       {/* Table Navigation & Controls Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border pb-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 border-b border-border pb-4">
         {/* Sub Tabs */}
-        <div className="flex items-center gap-1 rounded-lg border border-border bg-bg p-1 self-start">
+        <div className="flex flex-wrap items-center gap-1 rounded-xl border border-border bg-bg p-1 self-start">
           <button
             onClick={() => setActiveSubTab('products')}
-            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors min-touch-target ${
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors min-touch-target ${
               activeSubTab === 'products'
                 ? 'bg-surface text-accent shadow-subtle'
                 : 'text-ink-muted hover:text-ink'
@@ -55,7 +55,7 @@ export function TableView() {
           </button>
           <button
             onClick={() => setActiveSubTab('resources')}
-            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors min-touch-target ${
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors min-touch-target ${
               activeSubTab === 'resources'
                 ? 'bg-surface text-accent shadow-subtle'
                 : 'text-ink-muted hover:text-ink'
@@ -65,7 +65,7 @@ export function TableView() {
           </button>
           <button
             onClick={() => setActiveSubTab('usage')}
-            className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors min-touch-target ${
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors min-touch-target ${
               activeSubTab === 'usage'
                 ? 'bg-surface text-accent shadow-subtle'
                 : 'text-ink-muted hover:text-ink'
@@ -76,7 +76,7 @@ export function TableView() {
         </div>
 
         {/* Density Selector & Quick Action */}
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
           <div className="flex items-center gap-1 rounded-lg border border-border bg-surface p-0.5 text-xs">
             <button
               onClick={() => setTableDensity('comfortable')}

@@ -53,57 +53,61 @@ export function WhatIfSection() {
       </div>
 
       {/* Robustness Stress Test (Uji Ketahanan PRD 5.2) */}
-      <div className="rounded-lg border border-border bg-bg/60 p-4 space-y-3">
-        <div className="flex items-center justify-between">
+      <div className="rounded-xl border border-border bg-bg/60 p-4 space-y-3 overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
           <span className="text-xs font-bold text-ink flex items-center gap-1.5">
             <ShieldCheck className="h-4 w-4 text-accent" />
             Uji Ketahanan Kapasitas (Stress Test)
           </span>
           <span className="text-[11px] text-ink-muted">
-            Simulasikan jika kapasitas turun tak terduga (misal mesin rusak / pasokan terlambat)
+            Simulasi jika kapasitas turun tak terduga (pasokan terlambat / kendala mesin)
           </span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <button
             onClick={() => setRobustnessLevel('none')}
-            className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors min-touch-target ${
+            className={`rounded-xl border px-2.5 py-2 text-xs font-medium transition-colors min-touch-target text-center ${
               robustnessLevel === 'none'
-                ? 'border-accent bg-accent text-surface font-bold'
+                ? 'border-accent bg-accent text-surface font-bold shadow-subtle'
                 : 'border-border bg-surface text-ink-muted hover:border-accent/40'
             }`}
           >
-            Normal (100%)
+            <div>Normal</div>
+            <div className="text-[10px] opacity-80">(100%)</div>
           </button>
           <button
             onClick={() => setRobustnessLevel('light')}
-            className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors min-touch-target ${
+            className={`rounded-xl border px-2.5 py-2 text-xs font-medium transition-colors min-touch-target text-center ${
               robustnessLevel === 'light'
-                ? 'border-status-warn bg-status-warn text-surface font-bold'
+                ? 'border-status-warn bg-status-warn text-surface font-bold shadow-subtle'
                 : 'border-border bg-surface text-ink-muted hover:border-status-warn/40'
             }`}
           >
-            Ringan (-5% kapasitas)
+            <div>Ringan</div>
+            <div className="text-[10px] opacity-80">(-5% kapasitas)</div>
           </button>
           <button
             onClick={() => setRobustnessLevel('medium')}
-            className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors min-touch-target ${
+            className={`rounded-xl border px-2.5 py-2 text-xs font-medium transition-colors min-touch-target text-center ${
               robustnessLevel === 'medium'
-                ? 'border-status-warn bg-status-warn text-surface font-bold'
+                ? 'border-status-warn bg-status-warn text-surface font-bold shadow-subtle'
                 : 'border-border bg-surface text-ink-muted hover:border-status-warn/40'
             }`}
           >
-            Sedang (-10% kapasitas)
+            <div>Sedang</div>
+            <div className="text-[10px] opacity-80">(-10% kapasitas)</div>
           </button>
           <button
             onClick={() => setRobustnessLevel('heavy')}
-            className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors min-touch-target ${
+            className={`rounded-xl border px-2.5 py-2 text-xs font-medium transition-colors min-touch-target text-center ${
               robustnessLevel === 'heavy'
-                ? 'border-status-infeasible bg-status-infeasible text-surface font-bold'
+                ? 'border-status-infeasible bg-status-infeasible text-surface font-bold shadow-subtle'
                 : 'border-border bg-surface text-ink-muted hover:border-status-infeasible/40'
             }`}
           >
-            Berat (-20% kapasitas)
+            <div>Berat</div>
+            <div className="text-[10px] opacity-80">(-20% kapasitas)</div>
           </button>
         </div>
       </div>
@@ -124,13 +128,13 @@ export function WhatIfSection() {
           return (
             <div
               key={res.id}
-              className="rounded-xl border border-border bg-surface p-4 space-y-3 transition-colors hover:border-accent/30"
+              className="rounded-xl border border-border bg-surface p-4 space-y-3 transition-colors hover:border-accent/30 overflow-hidden"
             >
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
-                <div>
+              <div className="flex flex-wrap sm:flex-nowrap items-start sm:items-center justify-between gap-2">
+                <div className="min-w-0">
                   <span className="font-bold text-ink text-sm">{res.name}</span>
                   {shadowPrice > 0 && (
-                    <span className="ml-2 rounded bg-status-optimal-light text-status-optimal px-2 py-0.5 text-[11px] font-semibold">
+                    <span className="inline-block mt-0.5 sm:mt-0 sm:ml-2 rounded bg-status-optimal-light text-status-optimal px-2 py-0.5 text-[11px] font-semibold">
                       Nilai Tambah: +{formatRupiah(shadowPrice)} per {res.unit}
                     </span>
                   )}
