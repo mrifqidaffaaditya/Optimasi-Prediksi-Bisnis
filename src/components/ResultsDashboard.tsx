@@ -3,29 +3,39 @@
 import React from 'react';
 import { useBusinessStore } from '@/store/useBusinessStore';
 import { formatRupiah, formatNumber, formatPercent } from '@/lib/formatters';
+import { exportToExcel, exportToPDF, exportToCSV } from '@/lib/exportUtils';
 import { FeasibleRegionChart } from './FeasibleRegionChart';
 import { WhatIfSection } from './WhatIfSection';
 import {
   Sparkles,
   AlertOctagon,
-  AlertTriangle,
   CheckCircle2,
-  TrendingUp,
   Clock,
-  ArrowRight,
   Layers,
   Wrench,
-  HelpCircle,
-  BarChart3,
   Flame,
+  Download,
+  FileSpreadsheet,
+  FileText,
 } from 'lucide-react';
 
-export function ResultsDashboard() {
-  const { solution, objective, applySuggestedFix, setActiveTab } = useBusinessStore();
+interface ResultsDashboardProps {
+  onOpenExport?: () => void;
+}
+
+export function ResultsDashboard({ onOpenExport }: ResultsDashboardProps) {
+  const {
+    solution,
+    objective,
+    products,
+    resources,
+    usage,
+    applySuggestedFix,
+    setActiveTab,
+  } = useBusinessStore();
 
   const isOptimal = solution.status === 'OPTIMAL';
   const isInfeasible = solution.status === 'INFEASIBLE';
-  const isUnbounded = solution.status === 'UNBOUNDED';
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6 animate-in fade-in">
@@ -56,10 +66,21 @@ export function ResultsDashboard() {
             </span>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Action Buttons: Prominent Ekspor & Ubah Parameter */}
+          <div className="flex flex-wrap items-center gap-2">
+            {onOpenExport && (
+              <button
+                onClick={onOpenExport}
+                className="flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2.5 text-xs font-bold text-surface shadow-subtle hover:bg-accent-hover transition-colors min-touch-target"
+                title="Ekspor laporan ke format Excel, PDF, CSV, atau bagikan tautan"
+              >
+                <Download className="h-4 w-4" />
+                <span>Ekspor Laporan (Excel/PDF/CSV)</span>
+              </button>
+            )}
             <button
               onClick={() => setActiveTab('wizard')}
-              className="rounded-lg border border-border bg-bg px-3 py-2 text-xs font-semibold text-ink hover:bg-surface transition-colors min-touch-target"
+              className="rounded-xl border border-border bg-bg px-3.5 py-2 text-xs font-semibold text-ink hover:bg-surface transition-colors min-touch-target"
             >
               Ubah Parameter Isian
             </button>
@@ -213,7 +234,7 @@ export function ResultsDashboard() {
                     </span>
                   </div>
 
-                  {/* Visual Progress Bar (GPU transform per Hallmark 10a) */}
+                  {/* Visual Progress Bar */}
                   <div className="h-2 w-full rounded-full bg-border overflow-hidden">
                     <div
                       className={`h-full w-full rounded-full origin-left transition-transform ${
@@ -295,6 +316,67 @@ export function ResultsDashboard() {
 
       {/* 5. INTERACTIVE "BAGAIMANA JIKA" WHAT-IF SIMULATION */}
       {isOptimal && <WhatIfSection />}
+
+      {/* 6. DEDICATED QUICK EXPORT SECTION (PRD 6) */}
+      {isOptimal && (
+        <div className="rounded-2xl border-2 border-accent/30 bg-surface p-5 shadow-subtle space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border pb-3">
+            <div>
+              <h3 className="text-base font-bold text-ink flex items-center gap-2">
+                <Download className="h-5 w-5 text-accent" />
+                Ekspor &amp; Unduh Dokumen Hasil Analisis
+              </h3>
+              <p className="text-xs text-ink-muted">
+                Unduh hasil optimasi langsung ke perangkat Anda dalam format spreadsheet resmi atau dokumen siap cetak.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Download Excel */}
+            <button
+              onClick={() => exportToExcel(objective, products, resources, usage, solution)}
+              className="flex items-center gap-3 rounded-xl border border-border bg-bg/60 p-3.5 hover:bg-surface hover:border-accent transition-colors text-left min-touch-target"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-status-optimal-light text-status-optimal shrink-0">
+                <FileSpreadsheet className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-ink">Unduh Excel (.xlsx)</div>
+                <div className="text-[11px] text-ink-muted truncate">3 lembar kerja lengkap</div>
+              </div>
+            </button>
+
+            {/* Download PDF */}
+            <button
+              onClick={() => exportToPDF(objective, solution)}
+              className="flex items-center gap-3 rounded-xl border border-border bg-bg/60 p-3.5 hover:bg-surface hover:border-accent transition-colors text-left min-touch-target"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-status-infeasible-light text-status-infeasible shrink-0">
+                <FileText className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-ink">Unduh PDF Resmi</div>
+                <div className="text-[11px] text-ink-muted truncate">Format A4 siap rapat</div>
+              </div>
+            </button>
+
+            {/* Download CSV */}
+            <button
+              onClick={() => exportToCSV(solution, objective)}
+              className="flex items-center gap-3 rounded-xl border border-border bg-bg/60 p-3.5 hover:bg-surface hover:border-accent transition-colors text-left min-touch-target"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-light text-accent shrink-0">
+                <Download className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-ink">Unduh CSV Mentah</div>
+                <div className="text-[11px] text-ink-muted truncate">Format UTF-8 universal</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

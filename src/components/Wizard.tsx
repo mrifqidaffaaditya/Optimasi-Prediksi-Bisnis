@@ -230,17 +230,17 @@ export function Wizard() {
                   </div>
                 </div>
 
-                {/* Switch: Hanya Jumlah Utuh (No overflow, responsive flex) */}
-                <div className="mt-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 border-t border-border pt-3">
+                {/* Switch: Hanya Jumlah Utuh (Fixed: relative on pill, perfectly aligned) */}
+                <div className="mt-4 flex items-center justify-between gap-3 border-t border-border pt-3">
                   <div className="min-w-0 flex-1">
-                    <span className="text-xs font-medium text-ink block">
+                    <span className="text-xs font-semibold text-ink block">
                       Hanya jumlah utuh (tidak boleh pecahan)
                     </span>
-                    <span className="text-[11px] text-ink-muted block">
+                    <span className="text-[11px] text-ink-muted block mt-0.5">
                       (misal: hasil harus 10 bungkus utuh, bukan 10,4)
                     </span>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer shrink-0 min-touch-target">
+                  <label className="inline-flex items-center cursor-pointer shrink-0 min-touch-target select-none">
                     <input
                       type="checkbox"
                       checked={prod.integerOnly}
@@ -249,7 +249,7 @@ export function Wizard() {
                       }
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-transform peer-checked:bg-accent shrink-0"></div>
+                    <div className="relative w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:bg-accent peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-surface after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-transform shadow-inner shrink-0"></div>
                   </label>
                 </div>
               </div>

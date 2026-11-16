@@ -8,6 +8,7 @@ import {
   Table as TableIcon,
   Compass,
   FileSpreadsheet,
+  Download,
   Bookmark,
   Bot,
   ChevronDown,
@@ -154,14 +155,14 @@ export function Navbar({
             )}
           </button>
 
-          {/* Import / Export */}
+          {/* Export / Import Button (Always prominent & accessible) */}
           <button
             onClick={onOpenImportExport}
-            className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-2.5 sm:px-3 py-1.5 text-xs font-medium text-ink hover:bg-bg transition-colors min-touch-target"
-            title="Impor atau Ekspor berkas Excel, CSV, PDF, dan tautan"
+            className="flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-light/50 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-accent hover:bg-accent-light transition-colors min-touch-target"
+            title="Ekspor Laporan (Excel, PDF, CSV) & Impor Berkas"
           >
-            <FileSpreadsheet className="h-3.5 w-3.5 text-accent" />
-            <span className="hidden sm:inline">Berkas</span>
+            <Download className="h-3.5 w-3.5 text-accent" />
+            <span>Ekspor</span>
           </button>
 
           {/* AI Status Badge (System-provided, status only as requested!) */}

@@ -55,7 +55,9 @@ export default function Home() {
       <main className="flex-1 w-full max-w-7xl mx-auto py-4">
         {activeTab === 'wizard' && <Wizard />}
         {activeTab === 'table' && <TableView />}
-        {activeTab === 'results' && <ResultsDashboard />}
+        {activeTab === 'results' && (
+          <ResultsDashboard onOpenExport={() => setShowImportExport(true)} />
+        )}
       </main>
 
       {/* Mobile Sticky Bottom Tab Bar (PRD 5.5 & 8: Aksesibilitas ponsel 360px) */}

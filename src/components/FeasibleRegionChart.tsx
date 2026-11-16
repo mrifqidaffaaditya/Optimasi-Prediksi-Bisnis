@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Geometry2D, CornerPoint2D } from '@/types';
 import { formatRupiah, formatNumber } from '@/lib/formatters';
-import { HelpCircle, Info, Crosshair } from 'lucide-react';
+import { HelpCircle, Info, Crosshair, Sparkles } from 'lucide-react';
 
 interface FeasibleRegionChartProps {
   geometry: Geometry2D;
@@ -11,10 +11,11 @@ interface FeasibleRegionChartProps {
 }
 
 export function FeasibleRegionChart({ geometry, objectiveType }: FeasibleRegionChartProps) {
-  const [selectedPoint, setSelectedPoint] = useState<CornerPoint2D | null>(null);
-  const [showExplanation, setShowExplanation] = useState(false);
-
   const { productX, productY, feasiblePolygon, cornerPoints, optimalPoint, maxBounds, constraintLines } = geometry;
+
+  const defaultPoint = cornerPoints.find((p) => p.isOptimal) || cornerPoints[0] || null;
+  const [selectedPoint, setSelectedPoint] = useState<CornerPoint2D | null>(defaultPoint);
+  const [showExplanation, setShowExplanation] = useState(false);
 
   // SVG coordinate transformation
   const width = 560;
@@ -30,24 +31,24 @@ export function FeasibleRegionChart({ geometry, objectiveType }: FeasibleRegionC
     .join(' ');
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-5 shadow-subtle space-y-4">
+    <div className="rounded-xl border border-border bg-surface p-4 sm:p-5 shadow-subtle space-y-4">
       {/* Header with Title and "Apa artinya?" button */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h3 className="text-sm font-bold text-ink flex items-center gap-2">
-            Area Produksi yang Memungkinkan (Feasible Region)
+            Area Produksi (Feasible Region)
             <span className="text-xs font-normal text-ink-muted">
               ({productX.name} vs {productY.name})
             </span>
           </h3>
           <p className="text-xs text-ink-muted">
-            Area berwarna hijau lembut adalah seluruh kombinasi produksi yang aman dijalankan.
+            Area hijau adalah seluruh kombinasi produksi yang aman dijalankan.
           </p>
         </div>
 
         <button
           onClick={() => setShowExplanation(!showExplanation)}
-          className="flex items-center gap-1 rounded-lg border border-border bg-bg px-2.5 py-1 text-xs font-medium text-accent hover:bg-surface transition-colors min-touch-target"
+          className="flex items-center gap-1 rounded-lg border border-border bg-bg px-2.5 py-1 text-xs font-medium text-accent hover:bg-surface transition-colors min-touch-target shrink-0"
         >
           <HelpCircle className="h-3.5 w-3.5" />
           Apa artinya?
@@ -58,20 +59,20 @@ export function FeasibleRegionChart({ geometry, objectiveType }: FeasibleRegionC
       {showExplanation && (
         <div className="rounded-lg border border-accent-subtle bg-accent-light/60 p-3.5 text-xs text-ink space-y-1.5 animate-in fade-in">
           <div className="font-bold flex items-center gap-1.5 text-accent">
-            <Info className="h-4 w-4" />
+            <Info className="h-4 w-4 shrink-0" />
             Cara Membaca Grafik Area Produksi:
           </div>
           <p className="text-ink-muted leading-relaxed">
-            - <strong>Sumbu Horizontal (Bawah):</strong> Jumlah {productX.name} yang diproduksi.
-            <br />- <strong>Sumbu Vertikal (Kiri):</strong> Jumlah {productY.name} yang diproduksi.
-            <br />- <strong>Garis Berwarna:</strong> Batasan kapasitas sumber daya (bahan baku, jam oven, dll). Produksi tidak boleh melewati garis ini.
-            <br />- <strong>Titik Emas / Bintang:</strong> Kombinasi terbaik yang memberikan keuntungan paling maksimal!
+            - <strong>Sumbu Bawah:</strong> Jumlah {productX.name} yang diproduksi.
+            <br />- <strong>Sumbu Kiri:</strong> Jumlah {productY.name} yang diproduksi.
+            <br />- <strong>Garis Berwarna:</strong> Batasan kapasitas sumber daya (bahan, jam kerja).
+            <br />- <strong>Bintang Emas:</strong> Titik kombinasi paling menguntungkan (optimum)!
           </p>
         </div>
       )}
 
-      {/* Interactive SVG Chart */}
-      <div className="relative overflow-hidden rounded-lg border border-border bg-[var(--bg-canvas)] p-2 flex justify-center">
+      {/* Interactive SVG Chart (with Touch Optimization & Hit-Area) */}
+      <div className="relative overflow-hidden rounded-xl border border-border bg-[var(--bg-canvas)] p-1 sm:p-2 flex justify-center touch-manipulation">
         <svg
           role="img"
           aria-label="Grafik visualisasi area yang memungkinkan"
@@ -142,7 +143,6 @@ export function FeasibleRegionChart({ geometry, objectiveType }: FeasibleRegionC
 
           {/* Constraint Boundary Lines */}
           {constraintLines.map((line) => {
-            // Find points where line intersects boundary of graph
             let p1: [number, number] = [0, 0];
             let p2: [number, number] = [0, 0];
 
@@ -172,19 +172,41 @@ export function FeasibleRegionChart({ geometry, objectiveType }: FeasibleRegionC
             );
           })}
 
-          {/* Corner Points */}
+          {/* Corner Points with 44px Touch Targets */}
           {cornerPoints.map((pt, i) => {
             const isOpt = pt.isOptimal;
+            const isSelected = selectedPoint?.x === pt.x && selectedPoint?.y === pt.y;
             return (
               <g
                 key={i}
-                className="cursor-pointer transition-transform hover:scale-125"
+                className="cursor-pointer"
                 onClick={() => setSelectedPoint(pt)}
+                onTouchStart={() => setSelectedPoint(pt)}
               >
+                {/* 44px invisible touch hit target for mobile fingers */}
                 <circle
                   cx={scaleX(pt.x)}
                   cy={scaleY(pt.y)}
-                  r={isOpt ? 6 : 4}
+                  r="22"
+                  fill="transparent"
+                />
+                {/* Selected point pulsing ring */}
+                {isSelected && (
+                  <circle
+                    cx={scaleX(pt.x)}
+                    cy={scaleY(pt.y)}
+                    r={isOpt ? 12 : 10}
+                    fill="none"
+                    stroke={isOpt ? 'var(--gold-signal)' : 'var(--accent)'}
+                    strokeWidth="2"
+                    strokeDasharray="2 2"
+                  />
+                )}
+                {/* Visible point marker */}
+                <circle
+                  cx={scaleX(pt.x)}
+                  cy={scaleY(pt.y)}
+                  r={isOpt ? 7 : (isSelected ? 6 : 4.5)}
                   fill={isOpt ? 'var(--gold-signal)' : 'var(--accent)'}
                   stroke="#FFFFFF"
                   strokeWidth="2"
@@ -200,7 +222,6 @@ export function FeasibleRegionChart({ geometry, objectiveType }: FeasibleRegionC
           </g>
 
           {/* Axes */}
-          {/* X Axis */}
           <line
             x1={scaleX(0)}
             y1={scaleY(0)}
@@ -209,7 +230,6 @@ export function FeasibleRegionChart({ geometry, objectiveType }: FeasibleRegionC
             stroke="#16202A"
             strokeWidth="1.5"
           />
-          {/* Y Axis */}
           <line
             x1={scaleX(0)}
             y1={scaleY(0)}
@@ -244,33 +264,92 @@ export function FeasibleRegionChart({ geometry, objectiveType }: FeasibleRegionC
         </svg>
       </div>
 
-      {/* Legend & Selected Corner Point Details */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs pt-2 border-t border-border">
-        {/* Constraints Legend */}
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-full bg-[var(--gold-signal)]"></span>
-            <span className="font-semibold text-ink">Titik Rekomendasi (Optimum)</span>
-          </div>
-          {constraintLines.map((l) => (
-            <div key={l.resourceId} className="flex items-center gap-1.5">
-              <span className="h-2 w-3.5 rounded" style={{ backgroundColor: l.color }}></span>
-              <span className="text-ink-muted">{l.name}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Selected Point Inspection */}
-        {selectedPoint ? (
-          <div className="rounded bg-accent-light px-2.5 py-1 text-accent font-semibold flex items-center gap-1">
-            <Crosshair className="h-3.5 w-3.5" />
-            Titik terpilih: ({formatNumber(selectedPoint.x)} {productX.unit}, {formatNumber(selectedPoint.y)} {productY.unit}) = {formatRupiah(selectedPoint.value)}
-          </div>
-        ) : (
-          <span className="text-ink-muted italic">
-            Klik titik sudut mana pun untuk melihat nilai keuntungannya
+      {/* Mobile-Friendly Point Selector Chips (Tappable on mobile with 44px min-touch) */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold text-ink">
+            Pilih Titik Sudut:
           </span>
-        )}
+          <span className="text-[11px] text-ink-muted">
+            Tekan titik untuk melihat perbandingan
+          </span>
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {cornerPoints.map((pt, i) => {
+            const isOpt = pt.isOptimal;
+            const isSelected = selectedPoint?.x === pt.x && selectedPoint?.y === pt.y;
+            return (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setSelectedPoint(pt)}
+                className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition-colors min-touch-target ${
+                  isSelected
+                    ? 'border-accent bg-accent text-surface shadow-subtle'
+                    : isOpt
+                    ? 'border-[var(--gold-signal)] bg-accent-light/50 text-ink hover:border-accent'
+                    : 'border-border bg-bg text-ink-muted hover:text-ink hover:border-accent/40'
+                }`}
+              >
+                <span
+                  className={`h-2.5 w-2.5 rounded-full shrink-0 ${
+                    isOpt ? 'bg-[var(--gold-signal)]' : 'bg-accent'
+                  }`}
+                />
+                <span>
+                  {isOpt ? '⭐ Titik Rekomendasi' : `Titik ${String.fromCharCode(65 + i)}`}
+                </span>
+                <span className="tabular-nums font-mono opacity-80 text-[11px]">
+                  ({formatNumber(pt.x)}, {formatNumber(pt.y)})
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Selected Point Inspection Card (Clear, Large, Touch-Friendly) */}
+      {selectedPoint && (
+        <div className="rounded-xl border-2 border-accent bg-accent-light/50 p-4 space-y-2 animate-in fade-in">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-xs font-bold text-accent flex items-center gap-1.5">
+              <Crosshair className="h-4 w-4" />
+              {selectedPoint.isOptimal ? '⭐ Titik Rekomendasi Terbaik (Optimum)' : 'Titik Sudut Alternatif'}
+            </span>
+            <span className="text-sm font-extrabold text-ink tabular-nums">
+              {objectiveType === 'MAXIMIZE_PROFIT' ? 'Total Untung' : 'Total Biaya'}: {formatRupiah(selectedPoint.value)}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+            <div className="rounded-lg bg-surface p-2.5 border border-border">
+              <span className="text-ink-muted block text-[11px] truncate">{productX.name}:</span>
+              <span className="font-bold text-ink tabular-nums text-sm">
+                {formatNumber(selectedPoint.x)} {productX.unit}
+              </span>
+            </div>
+            <div className="rounded-lg bg-surface p-2.5 border border-border">
+              <span className="text-ink-muted block text-[11px] truncate">{productY.name}:</span>
+              <span className="font-bold text-ink tabular-nums text-sm">
+                {formatNumber(selectedPoint.y)} {productY.unit}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Legend */}
+      <div className="flex flex-wrap items-center gap-3 text-xs pt-2 border-t border-border">
+        <div className="flex items-center gap-1.5">
+          <span className="h-3 w-3 rounded-full bg-[var(--gold-signal)]"></span>
+          <span className="font-semibold text-ink">Titik Rekomendasi (Optimum)</span>
+        </div>
+        {constraintLines.map((l) => (
+          <div key={l.resourceId} className="flex items-center gap-1.5">
+            <span className="h-2 w-3.5 rounded" style={{ backgroundColor: l.color }}></span>
+            <span className="text-ink-muted">{l.name}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
