@@ -1,0 +1,85 @@
+/* Hallmark stamp: optimasi-prediksi-bisnis / clean enterprise editorial / business tokens */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #F7F6F3;
+  --bg-canvas: #FAFAF8;
+  --surface: #FFFFFF;
+  --ink: #16202A;
+  --ink-muted: #5B6672;
+  --border: #E3E1DB;
+  --border-subtle: #EDEBE6;
+  --accent: #1F4E5F;
+  --accent-hover: #163946;
+  --accent-light: #E8EFF1;
+  --accent-subtle: #D3DFE2;
+  --gold-signal: #D97706;
+  
+  --status-optimal: #2F7D57;
+  --status-optimal-light: #EAF5EE;
+  --status-optimal-border: #BFE3CE;
+
+  --status-warn: #B7791F;
+  --status-warn-light: #FEF7EC;
+  --status-warn-border: #F8DCAC;
+
+  --status-infeasible: #B3382C;
+  --status-infeasible-light: #FDF2F0;
+  --status-infeasible-border: #F6C5C0;
+
+  --data-1: #1F4E5F;
+  --data-2: #C2793A;
+  --data-3: #6B7A3A;
+  --data-4: #8A3B4A;
+  --data-5: #5E6C84;
+  --data-6: #8F8A7E;
+
+  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+html, body {
+  overflow-x: clip;
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Tabular figures for aligned business & financial numbers */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Accessibility focus-visible and active */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button:active:not(:disabled),
+a:active {
+  transform: scale(0.985);
+}
+
+/* 44px min touch target utility for mobile */
+.min-touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Anti-slop / Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
