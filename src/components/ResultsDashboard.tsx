@@ -3,7 +3,7 @@
 import React from 'react';
 import { useBusinessStore } from '@/store/useBusinessStore';
 import { formatRupiah, formatNumber, formatPercent } from '@/lib/formatters';
-import { exportToExcel, exportToPDF, exportToCSV } from '@/lib/exportUtils';
+import { exportToExcel, exportToPDF, exportToCSV, downloadSvgAsPNG } from '@/lib/exportUtils';
 import { FeasibleRegionChart } from './FeasibleRegionChart';
 import { WhatIfSection } from './WhatIfSection';
 import {
@@ -17,6 +17,7 @@ import {
   Download,
   FileSpreadsheet,
   FileText,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 interface ResultsDashboardProps {
@@ -332,7 +333,7 @@ export function ResultsDashboard({ onOpenExport }: ResultsDashboardProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {/* Download Excel */}
             <button
               onClick={() => exportToExcel(objective, products, resources, usage, solution)}
@@ -361,12 +362,33 @@ export function ResultsDashboard({ onOpenExport }: ResultsDashboardProps) {
               </div>
             </button>
 
+            {/* Download Gambar Grafik PNG */}
+            <button
+              onClick={() => {
+                const svgEl = document.querySelector('svg[aria-label="Grafik visualisasi area yang memungkinkan"]') as SVGSVGElement;
+                if (svgEl) {
+                  downloadSvgAsPNG(svgEl, 'grafik-area-produksi.png');
+                } else {
+                  alert('Grafik visualisasi 2D khusus untuk model 2 produk aktif.');
+                }
+              }}
+              className="flex items-center gap-3 rounded-xl border border-border bg-bg/60 p-3.5 hover:bg-surface hover:border-accent transition-colors text-left min-touch-target"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-light text-accent shrink-0">
+                <ImageIcon className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-ink">Unduh Gambar Grafik</div>
+                <div className="text-[11px] text-ink-muted truncate">Format PNG presentasi</div>
+              </div>
+            </button>
+
             {/* Download CSV */}
             <button
               onClick={() => exportToCSV(solution, objective)}
               className="flex items-center gap-3 rounded-xl border border-border bg-bg/60 p-3.5 hover:bg-surface hover:border-accent transition-colors text-left min-touch-target"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-light text-accent shrink-0">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-bg border border-border text-ink-muted shrink-0">
                 <Download className="h-5 w-5" />
               </div>
               <div className="min-w-0">

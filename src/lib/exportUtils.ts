@@ -334,3 +334,55 @@ export function downloadExcelTemplate() {
 
   XLSX.writeFile(wb, 'Template_Optimasi_Bisnis.xlsx');
 }
+
+// Export SVG Element as SVG file (PRD 5.4 & 14.8)
+export function downloadSvgAsSVG(svgElement: SVGSVGElement, filename: string = 'grafik-area-produksi.svg') {
+  const serializer = new XMLSerializer();
+  let source = serializer.serializeToString(svgElement);
+  if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+    source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+  }
+  const svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(svgBlob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// Export SVG Element as high-res PNG image (PRD 5.4 & 14.8)
+export function downloadSvgAsPNG(svgElement: SVGSVGElement, filename: string = 'grafik-area-produksi.png') {
+  const serializer = new XMLSerializer();
+  let source = serializer.serializeToString(svgElement);
+  if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+    source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+  }
+  const svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(svgBlob);
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    // High-resolution retina 2x canvas
+    canvas.width = 1120;
+    canvas.height = 800;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      // White clean background
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      const pngUrl = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = pngUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  };
+  img.src = url;
+}

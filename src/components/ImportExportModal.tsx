@@ -7,6 +7,8 @@ import {
   exportToCSV,
   exportToPDF,
   downloadExcelTemplate,
+  downloadSvgAsPNG,
+  downloadSvgAsSVG,
 } from '@/lib/exportUtils';
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
@@ -21,6 +23,7 @@ import {
   AlertCircle,
   Copy,
   Layers,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 interface ImportExportModalProps {
@@ -185,39 +188,58 @@ export function ImportExportModal({ isOpen, onClose }: ImportExportModalProps) {
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {/* Excel Multi-Sheet */}
             <button
               onClick={() =>
                 exportToExcel(objective, products, resources, usage, solution, companyName)
               }
-              className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-bg/50 p-4 hover:border-accent hover:bg-accent-light/30 transition-colors text-center min-touch-target"
+              className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-bg/50 p-3 sm:p-4 hover:border-accent hover:bg-accent-light/30 transition-colors text-center min-touch-target"
             >
               <FileSpreadsheet className="h-6 w-6 text-status-optimal" />
               <div>
                 <div className="font-bold text-xs text-ink">Excel (.xlsx)</div>
-                <div className="text-[11px] text-ink-muted">Multi-lembar & Data Input</div>
+                <div className="text-[11px] text-ink-muted">Multi-lembar Lengkap</div>
               </div>
             </button>
 
             {/* PDF Report */}
             <button
               onClick={() => exportToPDF(objective, solution, companyName)}
-              className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-bg/50 p-4 hover:border-accent hover:bg-accent-light/30 transition-colors text-center min-touch-target"
+              className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-bg/50 p-3 sm:p-4 hover:border-accent hover:bg-accent-light/30 transition-colors text-center min-touch-target"
             >
               <FileText className="h-6 w-6 text-status-infeasible" />
               <div>
                 <div className="font-bold text-xs text-ink">PDF Dokumen</div>
-                <div className="text-[11px] text-ink-muted">Siap Cetak & Dibawa Rapat</div>
+                <div className="text-[11px] text-ink-muted">Siap Cetak Rapat</div>
+              </div>
+            </button>
+
+            {/* Gambar Grafik PNG */}
+            <button
+              onClick={() => {
+                const svgEl = document.querySelector('svg[aria-label="Grafik visualisasi area yang memungkinkan"]') as SVGSVGElement;
+                if (svgEl) {
+                  downloadSvgAsPNG(svgEl, 'grafik-area-produksi.png');
+                } else {
+                  alert('Grafik 2D area khusus untuk model 2 produk aktif.');
+                }
+              }}
+              className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-bg/50 p-3 sm:p-4 hover:border-accent hover:bg-accent-light/30 transition-colors text-center min-touch-target"
+            >
+              <ImageIcon className="h-6 w-6 text-accent" />
+              <div>
+                <div className="font-bold text-xs text-ink">Gambar Grafik</div>
+                <div className="text-[11px] text-ink-muted">PNG Presentasi</div>
               </div>
             </button>
 
             {/* CSV */}
             <button
               onClick={() => exportToCSV(solution, objective)}
-              className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-bg/50 p-4 hover:border-accent hover:bg-accent-light/30 transition-colors text-center min-touch-target"
+              className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-bg/50 p-3 sm:p-4 hover:border-accent hover:bg-accent-light/30 transition-colors text-center min-touch-target"
             >
-              <Download className="h-6 w-6 text-accent" />
+              <Download className="h-6 w-6 text-ink-muted" />
               <div>
                 <div className="font-bold text-xs text-ink">CSV (UTF-8)</div>
                 <div className="text-[11px] text-ink-muted">Data Mentah Analisis</div>

@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Geometry2D, CornerPoint2D } from '@/types';
 import { formatRupiah, formatNumber } from '@/lib/formatters';
-import { HelpCircle, Info, Crosshair, Sparkles } from 'lucide-react';
+import { downloadSvgAsPNG, downloadSvgAsSVG } from '@/lib/exportUtils';
+import { HelpCircle, Info, Crosshair, Sparkles, Download, Image as ImageIcon } from 'lucide-react';
 
 interface FeasibleRegionChartProps {
   geometry: Geometry2D;
@@ -13,9 +14,22 @@ interface FeasibleRegionChartProps {
 export function FeasibleRegionChart({ geometry, objectiveType }: FeasibleRegionChartProps) {
   const { productX, productY, feasiblePolygon, cornerPoints, optimalPoint, maxBounds, constraintLines } = geometry;
 
+  const svgRef = useRef<SVGSVGElement>(null);
   const defaultPoint = cornerPoints.find((p) => p.isOptimal) || cornerPoints[0] || null;
   const [selectedPoint, setSelectedPoint] = useState<CornerPoint2D | null>(defaultPoint);
   const [showExplanation, setShowExplanation] = useState(false);
+
+  const handleDownloadPNG = () => {
+    if (svgRef.current) {
+      downloadSvgAsPNG(svgRef.current, `grafik-area-produksi-${productX.name}-${productY.name}.png`);
+    }
+  };
+
+  const handleDownloadSVG = () => {
+    if (svgRef.current) {
+      downloadSvgAsSVG(svgRef.current, `grafik-area-produksi-${productX.name}-${productY.name}.svg`);
+    }
+  };
 
   // SVG coordinate transformation
   const width = 560;
@@ -46,13 +60,37 @@ export function FeasibleRegionChart({ geometry, objectiveType }: FeasibleRegionC
           </p>
         </div>
 
-        <button
-          onClick={() => setShowExplanation(!showExplanation)}
-          className="flex items-center gap-1 rounded-lg border border-border bg-bg px-2.5 py-1 text-xs font-medium text-accent hover:bg-surface transition-colors min-touch-target shrink-0"
-        >
-          <HelpCircle className="h-3.5 w-3.5" />
-          Apa artinya?
-        </button>
+        {/* Action Buttons: Download PNG, Download SVG, Apa artinya */}
+        <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={handleDownloadPNG}
+            className="flex items-center gap-1.5 rounded-lg border border-accent/40 bg-accent-light/60 px-2.5 py-1 text-xs font-bold text-accent hover:bg-accent-light transition-colors min-touch-target"
+            title="Unduh grafik sebagai berkas gambar PNG resolusi tinggi"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span>Unduh Grafik (PNG)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDownloadSVG}
+            className="flex items-center gap-1 rounded-lg border border-border bg-bg px-2 py-1 text-xs font-semibold text-ink-muted hover:text-ink hover:bg-surface hover:border-accent transition-colors min-touch-target"
+            title="Unduh grafik sebagai berkas vektor SVG tajam"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span>SVG</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowExplanation(!showExplanation)}
+            className="flex items-center gap-1 rounded-lg border border-border bg-bg px-2.5 py-1 text-xs font-medium text-accent hover:bg-surface transition-colors min-touch-target"
+          >
+            <HelpCircle className="h-3.5 w-3.5" />
+            <span>Apa artinya?</span>
+          </button>
+        </div>
       </div>
 
       {/* Explainer Accordion/Modal */}
@@ -74,6 +112,7 @@ export function FeasibleRegionChart({ geometry, objectiveType }: FeasibleRegionC
       {/* Interactive SVG Chart (with Touch Optimization & Hit-Area) */}
       <div className="relative overflow-hidden rounded-xl border border-border bg-[var(--bg-canvas)] p-1 sm:p-2 flex justify-center touch-manipulation">
         <svg
+          ref={svgRef}
           role="img"
           aria-label="Grafik visualisasi area yang memungkinkan"
           viewBox={`0 0 ${width} ${height}`}
