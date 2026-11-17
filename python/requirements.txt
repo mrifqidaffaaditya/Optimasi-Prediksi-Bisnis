@@ -1,0 +1,4 @@
+# Dependensi Opsional untuk Rendering Grafik Format PNG dengan Matplotlib
+# Catatan: Program Python tetap dapat berjalan dan menghasilkan grafik format SVG & HTML mandiri tanpa modul ini.
+matplotlib>=3.5.0
+numpy>=1.21.0

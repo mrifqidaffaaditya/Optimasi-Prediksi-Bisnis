@@ -39,10 +39,14 @@ next-env.d.ts
 /.claude
 /agent
 
-# C++ Build outputs & local test artifacts
+# C++ & Python test outputs & build artifacts
 /cpp/optimasi_produksi
 /cpp/*.exe
 /cpp/*.out
 /hasil_optimasi.csv
+/grafik_optimasi_produksi.*
+__pycache__/
+*.pyc
+
 
 

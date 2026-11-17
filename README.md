@@ -8,7 +8,8 @@
 
 Aplikasi ini merupakan implementasi terpadu dari sistem optimasi alokasi sumber daya dan perencanaan kombinasi produksi optimal untuk UMKM maupun industri manufaktur. Proyek ini menggabungkan:
 1. **Source Code Inti C++ (`cpp/main.cpp`)**: Program konsol berkecepatan tinggi yang mengeksekusi metode Simpleks Big-M, Eliminasi Gauss-Jordan untuk menyelesaikan Sistem Persamaan Linear (SPL), verifikasi kelayakan kendala, serta ekspor data grafik ke berkas CSV.
-2. **Web Dashboard Interaktif (Next.js & Tailwind CSS)**: Antarmuka modern *client-side* yang ramah bagi pengguna bisnis non-IT, dilengkapi visualisasi area layak 2D, tabel interaktif, analisis faktor penghambat (*bottleneck*), simulasi skenario (*What-If*), serta ekspor laporan resmi (Excel, PDF, CSV, PNG).
+2. **Source Code Python & Visualisasi Grafis (`python/main.py`)**: Implementasi Python lengkap dengan fitur plotting grafik 2D (Area Layak, Garis Kendala, Titik Potong SPL Gauss-Jordan, dan Titik Optimal) dalam format PNG (Matplotlib) serta SVG & HTML mandiri (tanpa dependensi eksternal).
+3. **Web Dashboard Interaktif (Next.js & Tailwind CSS)**: Antarmuka modern *client-side* yang ramah bagi pengguna bisnis non-IT, dilengkapi visualisasi area layak 2D, tabel interaktif, analisis faktor penghambat (*bottleneck*), simulasi skenario (*What-If*), serta ekspor laporan resmi (Excel, PDF, CSV, PNG).
 
 ---
 
@@ -33,6 +34,39 @@ Hasil pada kolom konstanta merupakan solusi unik titik potong yang diverifikasi 
 
 ---
 
+## 🐍 Menjalankan Program Python & Pembuatan Grafik
+
+Berkas program Python terletak di [`python/main.py`](python/main.py).
+
+### Fitur Program Python:
+* Menjalankan seluruh algoritma Simpleks Big-M dan Eliminasi Gauss-Jordan dengan output per langkah.
+* **Pembuatan Grafik Visualisasi 2D Otomatis:**
+  * **Grafik Standar (Matplotlib):** Menyimpan gambar beresolusi tinggi `grafik_optimasi_produksi.png`.
+  * **Grafik Mandiri (Zero-Dependency):** Menghasilkan berkas vektor `grafik_optimasi_produksi.svg` dan halaman interaktif `grafik_optimasi_produksi.html` yang dapat dibuka langsung di peramban web apa pun tanpa perlu memasang modul tambahan.
+* Elemen grafik mencakup:
+  * Garis pembatas kendala sumber daya.
+  * Arsir area produksi yang layak (*Feasible Region*).
+  * Penanda titik sudut dan koordinat titik produksi optimal ($X_1^*, X_2^*$).
+
+### Langkah Eksekusi:
+```bash
+# 1. Jalankan program Python secara langsung
+python3 python/main.py
+
+# 2. (Opsional) Pasang Matplotlib jika ingin menghasilkan grafik PNG
+pip install -r python/requirements.txt
+```
+
+Setelah program selesai dijalankan, Anda dapat membuka grafik hasil optimasi:
+```bash
+# Buka grafik di browser (Linux/macOS/Windows)
+xdg-open grafik_optimasi_produksi.html   # Linux
+open grafik_optimasi_produksi.html       # macOS
+start grafik_optimasi_produksi.html      # Windows
+```
+
+---
+
 ## 💻 Menjalankan Program C++
 
 Berkas program C++ terletak di folder [`cpp/main.cpp`](cpp/main.cpp).
@@ -49,7 +83,7 @@ g++ -O3 -Wall -Wextra cpp/main.cpp -o optimasi_produksi
 ./optimasi_produksi
 ```
 
-### Menu Pilihan Data pada Program C++:
+### Menu Pilihan Data pada Program C++ & Python:
 * **Pilihan 1 (Kasus Utama Web):** UMKM Konveksi Karya Busana (Kemeja Batik & Tunik Modern).
   * Keuntungan: Rp 65.000 / Kemeja Batik, Rp 85.000 / Tunik Modern.
   * Kendala: Bahan Baku Kain (95 m), Jam Jahit (120 jam), Mesin Bordir (64 jam).
@@ -59,7 +93,7 @@ g++ -O3 -Wall -Wextra cpp/main.cpp -o optimasi_produksi
   * Solusi Optimal: **24 Roti Keju** & **24 Roti Coklat** (Laba Maksimal: **Rp 264.000**).
 * **Pilihan 3:** Masukkan Data Usaha Baru Secara Manual (interaktif dengan validasi input anti-error).
 
-Program secara otomatis menghasilkan berkas `hasil_optimasi.csv` yang berisi koordinat titik optimal dan perpotongan garis sumbu kendala.
+Program C++ secara otomatis menghasilkan berkas `hasil_optimasi.csv` yang berisi koordinat titik optimal dan perpotongan garis sumbu kendala.
 
 ---
 

@@ -41,7 +41,7 @@ export default function HalamanUtama() {
   }, [muatDariKodeBerbagi, aturTabAktif]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg text-ink pb-20 md:pb-6">
+    <div className="min-h-screen flex flex-col bg-bg text-ink pb-20 md:pb-6 w-full max-w-full overflow-x-clip">
       {/* Bilah Navigasi Atas */}
       <Navbar
         onOpenImportExport={() => setTampilkanImporEkspor(true)}
