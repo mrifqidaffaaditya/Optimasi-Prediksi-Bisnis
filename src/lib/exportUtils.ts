@@ -1,295 +1,383 @@
+// ============================================================================
+// UTILITAS EKSPOR & DOKUMEN LAPORAN BISNIS
+// Diformat ramah untuk bahan rapat direksi, UMKM, dan perbankan
+// ============================================================================
+
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
 import { jsPDF } from 'jspdf';
-import { Product, Resource, UsageMatrix, Solution, ObjectiveType } from '@/types';
-import { formatRupiah, formatNumber, formatPercent } from '@/lib/formatters';
+import { Produk, SumberDaya, MatriksPemakaian, SolusiBisnis, TipeTujuan } from '@/types';
+import { formatMataUangRupiah, formatAngka } from '@/lib/formatters';
 
-// Export Multi-Sheet Excel (PRD 6)
-export function exportToExcel(
-  objective: ObjectiveType,
-  products: Product[],
-  resources: Resource[],
-  usage: UsageMatrix,
-  solution: Solution,
-  companyName: string = 'Perusahaan Saya'
+/**
+ * Ekspor Lembar Kerja Excel Multi-Sheet (PRD 6)
+ * Berisi 4 lembar: Ringkasan, Rencana Produksi, Pemakaian Sumber Daya, dan Data Input.
+ */
+export function eksporKeExcel(
+  tujuanBisnis: TipeTujuan,
+  daftarProduk: Produk[],
+  daftarSumberDaya: SumberDaya[],
+  matriksPemakaian: MatriksPemakaian,
+  solusi: SolusiBisnis,
+  namaPerusahaan: string = 'Usaha Saya'
 ) {
-  const wb = XLSX.utils.book_new();
+  const bukuKerja = XLSX.utils.book_new();
 
-  // 1. Sheet Ringkasan
-  const summaryData = [
+  const apakahMaksimalkan =
+    tujuanBisnis === 'MAKSIMALKAN_UNTUNG' || tujuanBisnis === 'MAXIMIZE_PROFIT';
+  const totalNilai = solusi.totalNilai ?? solusi.objectiveValue ?? 0;
+  const kalimatKesimpulan = solusi.kalimatKesimpulan || solusi.conclusionSentence || '';
+  const produkSolusi = solusi.daftarProduk || solusi.products || [];
+  const sumberDayaSolusi = solusi.daftarSumberDaya || solusi.resources || [];
+  const penghambatUtama = solusi.penghambatUtama || solusi.topBottleneck;
+
+  // 1. Lembar Ringkasan Eksekutif
+  const dataRingkasan = [
     ['RINGKASAN REKOMENDASI OPTIMASI BISNIS'],
-    ['Nama Usaha / Proyek', companyName],
+    ['Nama Usaha / Proyek', namaPerusahaan],
     ['Tanggal Pembuatan', new Date().toLocaleString('id-ID')],
-    ['Tujuan Bisnis', objective === 'MAXIMIZE_PROFIT' ? 'Maksimalkan Untung' : 'Minimalkan Biaya'],
-    ['Status Solusi', solution.status === 'OPTIMAL' ? 'Rekomendasi Ditemukan' : solution.status],
+    ['Tujuan Bisnis', apakahMaksimalkan ? 'Maksimalkan Untung' : 'Minimalkan Biaya'],
+    ['Status Solusi', solusi.status === 'OPTIMAL' ? 'Rekomendasi Berhasil Ditemukan' : solusi.status],
     [
-      objective === 'MAXIMIZE_PROFIT' ? 'Total Untung Maksimal' : 'Total Biaya Minimum',
-      formatRupiah(solution.objectiveValue),
+      apakahMaksimalkan ? 'Total Proyeksi Untung Maksimal' : 'Total Proyeksi Biaya Minimum',
+      formatMataUangRupiah(totalNilai),
     ],
-    ['Kesimpulan Bisnis', solution.conclusionSentence],
+    ['Kesimpulan Bisnis', kalimatKesimpulan],
     [],
-    ['Faktor Penghambat Utama', solution.topBottleneck ? `${solution.topBottleneck.name} (Terpakai Penuh)` : '-'],
-    ['Nilai Tambah per Unit Tambahan', solution.topBottleneck ? formatRupiah(solution.topBottleneck.shadowPrice) : '-'],
+    [
+      'Faktor Penghambat Utama',
+      penghambatUtama ? `${penghambatUtama.nama || penghambatUtama.name} (Terpakai Penuh)` : '-',
+    ],
+    [
+      'Nilai Tambah per 1 Unit Tambahan',
+      penghambatUtama
+        ? formatMataUangRupiah(penghambatUtama.nilaiTambahPerUnit ?? penghambatUtama.shadowPrice ?? 0)
+        : '-',
+    ],
   ];
-  const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
-  XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan');
+  const lembarRingkasan = XLSX.utils.aoa_to_sheet(dataRingkasan);
+  XLSX.utils.book_append_sheet(bukuKerja, lembarRingkasan, 'Ringkasan');
 
-  // 2. Sheet Rencana Produksi
-  const productionData = [
-    ['Nama Produk', 'Rekomendasi Jumlah', 'Satuan', 'Untung / Biaya per Unit', 'Kontribusi Total', 'Porsi dari Total'],
-    ...solution.products.map((p) => [
-      p.name,
-      p.quantity,
-      p.unit,
-      p.profitPerUnit,
-      p.contribution,
-      `${p.percentageOfTotal}%`,
+  // 2. Lembar Rencana Produksi
+  const dataProduksi = [
+    [
+      'Nama Produk',
+      'Rekomendasi Jumlah',
+      'Satuan',
+      'Untung / Biaya per Unit',
+      'Kontribusi Total',
+      'Porsi dari Total (%)',
+    ],
+    ...produkSolusi.map((p) => [
+      p.nama || p.name,
+      p.jumlahProduksi ?? p.quantity ?? 0,
+      p.satuan || p.unit,
+      p.keuntunganPerUnit ?? p.profitPerUnit ?? 0,
+      p.kontribusiKeuntungan ?? p.contribution ?? 0,
+      `${p.persentaseTotal ?? p.percentageOfTotal ?? 0}%`,
     ]),
   ];
-  const wsProduction = XLSX.utils.aoa_to_sheet(productionData);
-  XLSX.utils.book_append_sheet(wb, wsProduction, 'Rencana Produksi');
+  const lembarProduksi = XLSX.utils.aoa_to_sheet(dataProduksi);
+  XLSX.utils.book_append_sheet(bukuKerja, lembarProduksi, 'Rencana Produksi');
 
-  // 3. Sheet Pemakaian Sumber Daya
-  const resourceData = [
-    ['Sumber Daya', 'Kapasitas Tersedia', 'Terpakai', 'Sisa Kapasitas', 'Satuan', 'Persentase Terpakai', 'Status', 'Nilai Tambah per 1 Unit'],
-    ...solution.resources.map((r) => [
-      r.name,
-      r.capacity,
-      r.used,
-      r.slack,
-      r.unit,
-      `${r.usagePercent}%`,
-      r.binding ? 'Terpakai Penuh (Penghambat)' : 'Aman (Masih Bersisa)',
-      r.shadowPrice > 0 ? formatRupiah(r.shadowPrice) : 'Rp 0',
-    ]),
+  // 3. Lembar Pemakaian Sumber Daya
+  const dataSumberDaya = [
+    [
+      'Sumber Daya',
+      'Kapasitas Tersedia',
+      'Kapasitas Terpakai',
+      'Sisa Kapasitas',
+      'Satuan',
+      'Persentase Terpakai (%)',
+      'Status Keterpakaian',
+      'Nilai Tambah per 1 Unit Tambahan',
+    ],
+    ...sumberDayaSolusi.map((r) => {
+      const terpakaiPenuh = r.terpakaiPenuh ?? r.binding ?? false;
+      const nilaiTambah = r.nilaiTambahPerUnit ?? r.shadowPrice ?? 0;
+      return [
+        r.nama || r.name,
+        r.kapasitasTersedia ?? r.capacity ?? 0,
+        r.kapasitasTerpakai ?? r.used ?? 0,
+        r.sisaKapasitas ?? r.slack ?? 0,
+        r.satuan || r.unit,
+        `${r.persentasePemakaian ?? r.usagePercent ?? 0}%`,
+        terpakaiPenuh ? 'Terpakai Penuh (Faktor Penghambat)' : 'Aman (Masih Bersisa)',
+        nilaiTambah > 0 ? formatMataUangRupiah(nilaiTambah) : 'Rp 0',
+      ];
+    }),
   ];
-  const wsResource = XLSX.utils.aoa_to_sheet(resourceData);
-  XLSX.utils.book_append_sheet(wb, wsResource, 'Pemakaian Sumber Daya');
+  const lembarSumberDaya = XLSX.utils.aoa_to_sheet(dataSumberDaya);
+  XLSX.utils.book_append_sheet(bukuKerja, lembarSumberDaya, 'Pemakaian Sumber Daya');
 
-  // 4. Sheet Data Input (Bisa di-upload ulang tanpa perubahan - PRD 6)
-  const inputProducts = [
+  // 4. Lembar Data Input (Dapat diunggah kembali tanpa perubahan - PRD 6)
+  const dataInput = [
     ['[PRODUK]'],
     ['ID', 'Nama Produk', 'Untung per Unit', 'Satuan', 'Hanya Jumlah Utuh (Ya/Tidak)'],
-    ...products.map((p) => [p.id, p.name, p.profit, p.unit, p.integerOnly ? 'Ya' : 'Tidak']),
+    ...daftarProduk.map((p) => [
+      p.id,
+      p.nama || p.name,
+      p.keuntungan ?? p.profit ?? 0,
+      p.satuan || p.unit,
+      (p.hanyaJumlahUtuh ?? p.integerOnly) ? 'Ya' : 'Tidak',
+    ]),
     [],
     ['[SUMBER DAYA]'],
     ['ID', 'Nama Sumber Daya', 'Kapasitas', 'Satuan', 'Tipe Batasan'],
-    ...resources.map((r) => [
-      r.id,
-      r.name,
-      r.capacity,
-      r.unit,
-      r.type === 'LEQ' ? 'Tidak boleh lebih dari' : r.type === 'GEQ' ? 'Paling sedikit' : 'Harus tepat',
-    ]),
+    ...daftarSumberDaya.map((r) => {
+      const jenis = r.jenisBatasan || r.type || 'TIDAK_LEBIH_DARI';
+      const jenisTeks =
+        jenis === 'PALING_SEDIKIT' || jenis === 'GEQ'
+          ? 'Paling sedikit'
+          : jenis === 'HARUS_TEPAT' || jenis === 'EQ'
+          ? 'Harus tepat'
+          : 'Tidak boleh lebih dari';
+      return [r.id, r.nama || r.name, r.kapasitas ?? r.capacity ?? 0, r.satuan || r.unit, jenisTeks];
+    }),
     [],
     ['[PEMAKAIAN PER UNIT]'],
-    ['ID Produk', 'Nama Produk', ...resources.map((r) => `${r.name} (${r.unit})`)],
-    ...products.map((p) => [
+    ['ID Produk', 'Nama Produk', ...daftarSumberDaya.map((r) => `${r.nama || r.name} (${r.satuan || r.unit})`)],
+    ...daftarProduk.map((p) => [
       p.id,
-      p.name,
-      ...resources.map((r) => usage[p.id]?.[r.id] ?? 0),
+      p.nama || p.name,
+      ...daftarSumberDaya.map((r) => matriksPemakaian[p.id]?.[r.id] ?? 0),
     ]),
   ];
-  const wsInput = XLSX.utils.aoa_to_sheet(inputProducts);
-  XLSX.utils.book_append_sheet(wb, wsInput, 'Data Input');
+  const lembarInput = XLSX.utils.aoa_to_sheet(dataInput);
+  XLSX.utils.book_append_sheet(bukuKerja, lembarInput, 'Data Input');
 
-  // Save workbook
-  const filename = `Rencana_Optimasi_Bisnis_${new Date().toISOString().slice(0, 10)}.xlsx`;
-  XLSX.writeFile(wb, filename);
+  // Simpan berkas Excel
+  const namaBerkas = `Rencana_Optimasi_Bisnis_${new Date().toISOString().slice(0, 10)}.xlsx`;
+  XLSX.writeFile(bukuKerja, namaBerkas);
 }
+export const exportToExcel = eksporKeExcel;
 
-// Export CSV with UTF-8 BOM and formula sanitization (PRD 6 & 12)
-export function exportToCSV(solution: Solution, objective: ObjectiveType) {
-  const sanitize = (val: any) => {
-    const s = String(val);
-    if (/^[=+@-].*/.test(s)) {
-      return `'${s}`; // Escape formula injection characters
+/**
+ * Ekspor Data CSV dengan UTF-8 BOM dan proteksi injeksi formula Excel (PRD 6 & 12)
+ */
+export function eksporKeCSV(solusi: SolusiBisnis, tujuanBisnis: TipeTujuan) {
+  const sanitasiTeks = (nilai: any) => {
+    const teks = String(nilai ?? '');
+    if (/^[=+@-].*/.test(teks)) {
+      return `'${teks}`; // Mencegah eksekusi rumus berbahaya di spreadsheet
     }
-    return s;
+    return teks;
   };
 
-  const rows = [
-    ['--- HASIL OPTIMASI BISNIS ---'],
-    ['Tujuan Bisnis', objective === 'MAXIMIZE_PROFIT' ? 'Maksimalkan Untung' : 'Minimalkan Biaya'],
-    ['Status', solution.status],
-    ['Total Nilai', formatRupiah(solution.objectiveValue)],
-    ['Kesimpulan', sanitize(solution.conclusionSentence)],
+  const apakahMaksimalkan =
+    tujuanBisnis === 'MAKSIMALKAN_UNTUNG' || tujuanBisnis === 'MAXIMIZE_PROFIT';
+  const totalNilai = solusi.totalNilai ?? solusi.objectiveValue ?? 0;
+  const kalimatKesimpulan = solusi.kalimatKesimpulan || solusi.conclusionSentence || '';
+  const produkSolusi = solusi.daftarProduk || solusi.products || [];
+  const sumberDayaSolusi = solusi.daftarSumberDaya || solusi.resources || [];
+
+  const barisData = [
+    ['--- HASIL REKOMENDASI OPTIMASI BISNIS ---'],
+    ['Tujuan Bisnis', apakahMaksimalkan ? 'Maksimalkan Untung' : 'Minimalkan Biaya'],
+    ['Status Solusi', solusi.status],
+    ['Total Nilai Proyeksi', formatMataUangRupiah(totalNilai)],
+    ['Kesimpulan', sanitasiTeks(kalimatKesimpulan)],
     [],
     ['--- RENCANA PRODUKSI ---'],
-    ['Nama Produk', 'Jumlah Rekomendasi', 'Satuan', 'Untung/Unit', 'Kontribusi Total', 'Porsi (%)'],
-    ...solution.products.map((p) => [
-      sanitize(p.name),
-      p.quantity,
-      sanitize(p.unit),
-      p.profitPerUnit,
-      p.contribution,
-      p.percentageOfTotal,
+    ['Nama Produk', 'Jumlah Rekomendasi', 'Satuan', 'Untung per Unit', 'Kontribusi Total', 'Porsi (%)'],
+    ...produkSolusi.map((p) => [
+      sanitasiTeks(p.nama || p.name),
+      p.jumlahProduksi ?? p.quantity ?? 0,
+      sanitasiTeks(p.satuan || p.unit),
+      p.keuntunganPerUnit ?? p.profitPerUnit ?? 0,
+      p.kontribusiKeuntungan ?? p.contribution ?? 0,
+      p.persentaseTotal ?? p.percentageOfTotal ?? 0,
     ]),
     [],
-    ['--- PEMAKAIAN SUMBER DAYA ---'],
+    ['--- PEMAKAIAN KAPASITAS SUMBER DAYA ---'],
     ['Sumber Daya', 'Kapasitas', 'Terpakai', 'Sisa', 'Satuan', 'Penggunaan (%)', 'Status'],
-    ...solution.resources.map((r) => [
-      sanitize(r.name),
-      r.capacity,
-      r.used,
-      r.slack,
-      sanitize(r.unit),
-      r.usagePercent,
-      r.binding ? 'Terpakai Penuh' : 'Bersisa',
-    ]),
+    ...sumberDayaSolusi.map((r) => {
+      const terpakaiPenuh = r.terpakaiPenuh ?? r.binding ?? false;
+      return [
+        sanitasiTeks(r.nama || r.name),
+        r.kapasitasTersedia ?? r.capacity ?? 0,
+        r.kapasitasTerpakai ?? r.used ?? 0,
+        r.sisaKapasitas ?? r.slack ?? 0,
+        sanitasiTeks(r.satuan || r.unit),
+        r.persentasePemakaian ?? r.usagePercent ?? 0,
+        terpakaiPenuh ? 'Terpakai Penuh' : 'Bersisa',
+      ];
+    }),
   ];
 
-  const csv = Papa.unparse(rows);
+  const csv = Papa.unparse(barisData);
   const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `Optimasi_Bisnis_${new Date().toISOString().slice(0, 10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
+  const tautanUrl = URL.createObjectURL(blob);
+  const elemenA = document.createElement('a');
+  elemenA.href = tautanUrl;
+  elemenA.download = `Optimasi_Bisnis_${new Date().toISOString().slice(0, 10)}.csv`;
+  elemenA.click();
+  URL.revokeObjectURL(tautanUrl);
 }
+export const exportToCSV = eksporKeCSV;
 
-// Export PDF Report ready for business meetings (PRD 7.2)
-export function exportToPDF(
-  objective: ObjectiveType,
-  solution: Solution,
-  companyName: string = 'Laporan Eksekutif Optimasi Bisnis'
+/**
+ * Ekspor Dokumen Laporan PDF Resmi Siap Dibawa ke Rapat Bisnis (PRD 7.2)
+ */
+export function eksporKePDF(
+  tujuanBisnis: TipeTujuan,
+  solusi: SolusiBisnis,
+  namaPerusahaan: string = 'Laporan Eksekutif Optimasi Bisnis'
 ) {
-  const doc = new jsPDF({
+  const dokumen = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
     format: 'a4',
   });
 
-  // Header
-  doc.setFillColor(31, 78, 95); // #1F4E5F (accent)
-  doc.rect(0, 0, 210, 24, 'F');
+  const apakahMaksimalkan =
+    tujuanBisnis === 'MAKSIMALKAN_UNTUNG' || tujuanBisnis === 'MAXIMIZE_PROFIT';
+  const totalNilai = solusi.totalNilai ?? solusi.objectiveValue ?? 0;
+  const kalimatKesimpulan = solusi.kalimatKesimpulan || solusi.conclusionSentence || '';
+  const produkSolusi = solusi.daftarProduk || solusi.products || [];
+  const sumberDayaSolusi = solusi.daftarSumberDaya || solusi.resources || [];
 
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(14);
-  doc.setFont('helvetica', 'bold');
-  doc.text(companyName, 14, 15);
+  // Kepala Dokumen (Header)
+  dokumen.setFillColor(31, 78, 95); // Warna aksen biru tua profesional
+  dokumen.rect(0, 0, 210, 24, 'F');
 
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Dibuat: ${new Date().toLocaleDateString('id-ID')}`, 160, 15);
+  dokumen.setTextColor(255, 255, 255);
+  dokumen.setFontSize(14);
+  dokumen.setFont('helvetica', 'bold');
+  dokumen.text(namaPerusahaan, 14, 15);
 
-  // Executive Summary Card
-  doc.setTextColor(22, 32, 42); // #16202A (ink)
-  doc.setFontSize(16);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Ringkasan Rekomendasi Bisnis', 14, 38);
+  dokumen.setFontSize(9);
+  dokumen.setFont('helvetica', 'normal');
+  dokumen.text(`Dibuat: ${new Date().toLocaleDateString('id-ID')}`, 160, 15);
 
-  doc.setFillColor(247, 246, 243); // #F7F6F3 (bg)
-  doc.roundedRect(14, 44, 182, 32, 2, 2, 'F');
+  // Kartu Ringkasan Eksekutif
+  dokumen.setTextColor(22, 32, 42);
+  dokumen.setFontSize(16);
+  dokumen.setFont('helvetica', 'bold');
+  dokumen.text('Ringkasan Rekomendasi Bisnis', 14, 38);
 
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text(
-    objective === 'MAXIMIZE_PROFIT' ? 'Proyeksi Untung Maksimal:' : 'Proyeksi Biaya Minimum:',
+  dokumen.setFillColor(247, 246, 243);
+  dokumen.roundedRect(14, 44, 182, 32, 2, 2, 'F');
+
+  dokumen.setFontSize(11);
+  dokumen.setFont('helvetica', 'bold');
+  dokumen.text(
+    apakahMaksimalkan ? 'Proyeksi Keuntungan Maksimal:' : 'Proyeksi Biaya Operasional Minimum:',
     20,
     54
   );
-  doc.setTextColor(47, 125, 87); // #2F7D57 (optimal)
-  doc.setFontSize(16);
-  doc.text(formatRupiah(solution.objectiveValue), 20, 62);
+  dokumen.setTextColor(47, 125, 87);
+  dokumen.setFontSize(16);
+  dokumen.text(formatMataUangRupiah(totalNilai), 20, 62);
 
-  doc.setTextColor(91, 102, 114); // #5B6672 (muted)
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  const splitConclusion = doc.splitTextToSize(solution.conclusionSentence, 170);
-  doc.text(splitConclusion, 20, 70);
+  dokumen.setTextColor(91, 102, 114);
+  dokumen.setFontSize(9);
+  dokumen.setFont('helvetica', 'normal');
+  const barisKesimpulan = dokumen.splitTextToSize(kalimatKesimpulan, 170);
+  dokumen.text(barisKesimpulan, 20, 70);
 
-  // Production Table
-  let currentY = 88;
-  doc.setTextColor(22, 32, 42);
-  doc.setFontSize(13);
-  doc.setFont('helvetica', 'bold');
-  doc.text('1. Rencana Produksi yang Direkomendasikan', 14, currentY);
+  // Tabel Rencana Produksi
+  let posisiY = 88;
+  dokumen.setTextColor(22, 32, 42);
+  dokumen.setFontSize(13);
+  dokumen.setFont('helvetica', 'bold');
+  dokumen.text('1. Rencana Produksi yang Direkomendasikan', 14, posisiY);
 
-  currentY += 6;
-  doc.setFillColor(227, 225, 219); // border header
-  doc.rect(14, currentY, 182, 8, 'F');
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Nama Produk', 16, currentY + 5.5);
-  doc.text('Jumlah Rekomendasi', 80, currentY + 5.5);
-  doc.text('Untung / Unit', 125, currentY + 5.5);
-  doc.text('Kontribusi Total', 160, currentY + 5.5);
+  posisiY += 6;
+  dokumen.setFillColor(227, 225, 219);
+  dokumen.rect(14, posisiY, 182, 8, 'F');
+  dokumen.setFontSize(9);
+  dokumen.setFont('helvetica', 'bold');
+  dokumen.text('Nama Produk', 16, posisiY + 5.5);
+  dokumen.text('Jumlah Rekomendasi', 80, posisiY + 5.5);
+  dokumen.text('Untung / Unit', 125, posisiY + 5.5);
+  dokumen.text('Kontribusi Total', 160, posisiY + 5.5);
 
-  currentY += 8;
-  doc.setFont('helvetica', 'normal');
-  solution.products.forEach((p, idx) => {
+  posisiY += 8;
+  dokumen.setFont('helvetica', 'normal');
+  produkSolusi.forEach((p, idx) => {
     if (idx % 2 === 1) {
-      doc.setFillColor(250, 250, 248);
-      doc.rect(14, currentY, 182, 7, 'F');
+      dokumen.setFillColor(250, 250, 248);
+      dokumen.rect(14, posisiY, 182, 7, 'F');
     }
-    doc.text(p.name, 16, currentY + 5);
-    doc.text(`${formatNumber(p.quantity)} ${p.unit}`, 80, currentY + 5);
-    doc.text(formatRupiah(p.profitPerUnit), 125, currentY + 5);
-    doc.text(formatRupiah(p.contribution), 160, currentY + 5);
-    currentY += 7;
+    const jumlah = p.jumlahProduksi ?? p.quantity ?? 0;
+    const untungUnit = p.keuntunganPerUnit ?? p.profitPerUnit ?? 0;
+    const kontribusi = p.kontribusiKeuntungan ?? p.contribution ?? 0;
+    dokumen.text(p.nama || p.name || 'Produk', 16, posisiY + 5);
+    dokumen.text(`${formatAngka(jumlah)} ${p.satuan || p.unit}`, 80, posisiY + 5);
+    dokumen.text(formatMataUangRupiah(untungUnit), 125, posisiY + 5);
+    dokumen.text(formatMataUangRupiah(kontribusi), 160, posisiY + 5);
+    posisiY += 7;
   });
 
-  // Resource Usage Table
-  currentY += 8;
-  doc.setFontSize(13);
-  doc.setFont('helvetica', 'bold');
-  doc.text('2. Pemakaian Kapasitas Sumber Daya', 14, currentY);
+  // Tabel Pemakaian Sumber Daya
+  posisiY += 8;
+  dokumen.setFontSize(13);
+  dokumen.setFont('helvetica', 'bold');
+  dokumen.text('2. Pemakaian Kapasitas Sumber Daya', 14, posisiY);
 
-  currentY += 6;
-  doc.setFillColor(227, 225, 219);
-  doc.rect(14, currentY, 182, 8, 'F');
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Sumber Daya', 16, currentY + 5.5);
-  doc.text('Kapasitas', 65, currentY + 5.5);
-  doc.text('Terpakai', 95, currentY + 5.5);
-  doc.text('Sisa Kapasitas', 130, currentY + 5.5);
-  doc.text('Status', 165, currentY + 5.5);
+  posisiY += 6;
+  dokumen.setFillColor(227, 225, 219);
+  dokumen.rect(14, posisiY, 182, 8, 'F');
+  dokumen.setFontSize(9);
+  dokumen.setFont('helvetica', 'bold');
+  dokumen.text('Sumber Daya', 16, posisiY + 5.5);
+  dokumen.text('Kapasitas', 65, posisiY + 5.5);
+  dokumen.text('Terpakai', 95, posisiY + 5.5);
+  dokumen.text('Sisa Kapasitas', 130, posisiY + 5.5);
+  dokumen.text('Status', 165, posisiY + 5.5);
 
-  currentY += 8;
-  doc.setFont('helvetica', 'normal');
-  solution.resources.forEach((r, idx) => {
+  posisiY += 8;
+  dokumen.setFont('helvetica', 'normal');
+  sumberDayaSolusi.forEach((r, idx) => {
     if (idx % 2 === 1) {
-      doc.setFillColor(250, 250, 248);
-      doc.rect(14, currentY, 182, 7, 'F');
+      dokumen.setFillColor(250, 250, 248);
+      dokumen.rect(14, posisiY, 182, 7, 'F');
     }
-    doc.text(r.name, 16, currentY + 5);
-    doc.text(`${formatNumber(r.capacity)} ${r.unit}`, 65, currentY + 5);
-    doc.text(`${formatNumber(r.used)} ${r.unit}`, 95, currentY + 5);
-    doc.text(`${formatNumber(r.slack)} ${r.unit}`, 130, currentY + 5);
-    if (r.binding) {
-      doc.setTextColor(179, 56, 44);
-      doc.text('Terpakai Penuh', 165, currentY + 5);
-      doc.setTextColor(22, 32, 42);
+    const cap = r.kapasitasTersedia ?? r.capacity ?? 0;
+    const used = r.kapasitasTerpakai ?? r.used ?? 0;
+    const slack = r.sisaKapasitas ?? r.slack ?? 0;
+    const terpakaiPenuh = r.terpakaiPenuh ?? r.binding ?? false;
+
+    dokumen.text(r.nama || r.name || 'Sumber Daya', 16, posisiY + 5);
+    dokumen.text(`${formatAngka(cap)} ${r.satuan || r.unit}`, 65, posisiY + 5);
+    dokumen.text(`${formatAngka(used)} ${r.satuan || r.unit}`, 95, posisiY + 5);
+    dokumen.text(`${formatAngka(slack)} ${r.satuan || r.unit}`, 130, posisiY + 5);
+
+    if (terpakaiPenuh) {
+      dokumen.setTextColor(179, 56, 44);
+      dokumen.text('Terpakai Penuh', 165, posisiY + 5);
+      dokumen.setTextColor(22, 32, 42);
     } else {
-      doc.setTextColor(47, 125, 87);
-      doc.text('Aman (Bersisa)', 165, currentY + 5);
-      doc.setTextColor(22, 32, 42);
+      dokumen.setTextColor(47, 125, 87);
+      dokumen.text('Aman (Bersisa)', 165, posisiY + 5);
+      dokumen.setTextColor(22, 32, 42);
     }
-    currentY += 7;
+    posisiY += 7;
   });
 
-  // Footer notes
-  currentY += 12;
-  doc.setFontSize(8);
-  doc.setTextColor(91, 102, 114);
-  doc.text(
-    'Catatan: Laporan ini dihitung secara client-side menggunakan mesin Linear Programming dan data tetap berada di perangkat Anda.',
+  // Catatan Kaki (Footer)
+  posisiY += 12;
+  dokumen.setFontSize(8);
+  dokumen.setTextColor(91, 102, 114);
+  dokumen.text(
+    'Catatan: Laporan ini dihitung secara langsung di perangkat browser Anda (client-side) tanpa menyimpan data bisnis ke server publik.',
     14,
-    currentY
+    posisiY
   );
 
-  doc.save(`Laporan_Rekomendasi_Bisnis_${new Date().toISOString().slice(0, 10)}.pdf`);
+  dokumen.save(`Laporan_Rekomendasi_Bisnis_${new Date().toISOString().slice(0, 10)}.pdf`);
 }
+export const exportToPDF = eksporKePDF;
 
-// Download Blank Template for Excel Import (PRD 6.1)
-export function downloadExcelTemplate() {
-  const wb = XLSX.utils.book_new();
+/**
+ * Mengunduh Berkas Template Excel Kosong untuk Diisi Pengguna (PRD 6.1)
+ */
+export function unduhTemplatExcel() {
+  const bukuKerja = XLSX.utils.book_new();
 
-  // 1. Mulai di Sini
-  const startHereData = [
+  // 1. Lembar Mulai di Sini
+  const dataMulai = [
     ['PANDUAN MENGISI TEMPLATE OPTIMASI BISNIS'],
     [],
     ['Langkah 1: Buka lembar "Produk", isi nama produk dan keuntungan per unit.'],
@@ -297,92 +385,103 @@ export function downloadExcelTemplate() {
     ['Langkah 3: Buka lembar "Pemakaian", isi berapa kebutuhan bahan untuk tiap produk.'],
     ['Langkah 4: Simpan berkas ini dan unggah kembali ke aplikasi web.'],
     [],
-    ['PETUNJUK FORMAT:'],
+    ['PETUNJUK FORMAT PENTING:'],
     ['- Gunakan angka standar (contoh: 5000 atau 0.5) tanpa titik ribuan di dalam sel angka.'],
-    ['- Selalu isi satuan (contoh: bungkus, kg, jam) agar laporan mudah dibaca.'],
+    ['- Selalu lengkapi kolom satuan (contoh: bungkus, kg, jam) agar laporan mudah dibaca.'],
   ];
-  const wsStart = XLSX.utils.aoa_to_sheet(startHereData);
-  XLSX.utils.book_append_sheet(wb, wsStart, 'Mulai di Sini');
+  const lembarMulai = XLSX.utils.aoa_to_sheet(dataMulai);
+  XLSX.utils.book_append_sheet(bukuKerja, lembarMulai, 'Mulai di Sini');
 
-  // 2. Produk
-  const productsData = [
+  // 2. Lembar Produk
+  const dataProduk = [
     ['ID', 'Nama Produk', 'Untung per Unit (Rp)', 'Satuan', 'Hanya Jumlah Utuh (Ya/Tidak)'],
     ['p1', 'Roti Tawar', 6000, 'bungkus', 'Ya'],
     ['p2', 'Roti Manis', 9000, 'bungkus', 'Ya'],
   ];
-  const wsProd = XLSX.utils.aoa_to_sheet(productsData);
-  XLSX.utils.book_append_sheet(wb, wsProd, 'Produk');
+  const lembarProduk = XLSX.utils.aoa_to_sheet(dataProduk);
+  XLSX.utils.book_append_sheet(bukuKerja, lembarProduk, 'Produk');
 
-  // 3. Sumber Daya
-  const resourcesData = [
+  // 3. Lembar Sumber Daya
+  const dataSumberDaya = [
     ['ID', 'Nama Sumber Daya', 'Kapasitas', 'Satuan', 'Tipe Batasan'],
     ['r1', 'Tepung Terigu', 120, 'kg', 'Tidak boleh lebih dari'],
     ['r2', 'Mentega', 45, 'kg', 'Tidak boleh lebih dari'],
     ['r3', 'Kapasitas Oven', 50, 'jam', 'Tidak boleh lebih dari'],
   ];
-  const wsRes = XLSX.utils.aoa_to_sheet(resourcesData);
-  XLSX.utils.book_append_sheet(wb, wsRes, 'Sumber Daya');
+  const lembarSumberDaya = XLSX.utils.aoa_to_sheet(dataSumberDaya);
+  XLSX.utils.book_append_sheet(bukuKerja, lembarSumberDaya, 'Sumber Daya');
 
-  // 4. Pemakaian
-  const usageData = [
+  // 4. Lembar Pemakaian
+  const dataPemakaian = [
     ['ID Produk', 'Nama Produk', 'Tepung Terigu (kg)', 'Mentega (kg)', 'Kapasitas Oven (jam)'],
     ['p1', 'Roti Tawar', 0.25, 0.05, 0.08],
     ['p2', 'Roti Manis', 0.2, 0.12, 0.1],
   ];
-  const wsUsage = XLSX.utils.aoa_to_sheet(usageData);
-  XLSX.utils.book_append_sheet(wb, wsUsage, 'Pemakaian');
+  const lembarPemakaian = XLSX.utils.aoa_to_sheet(dataPemakaian);
+  XLSX.utils.book_append_sheet(bukuKerja, lembarPemakaian, 'Pemakaian');
 
-  XLSX.writeFile(wb, 'Template_Optimasi_Bisnis.xlsx');
+  XLSX.writeFile(bukuKerja, 'Template_Optimasi_Bisnis.xlsx');
 }
+export const downloadExcelTemplate = unduhTemplatExcel;
 
-// Export SVG Element as SVG file (PRD 5.4 & 14.8)
-export function downloadSvgAsSVG(svgElement: SVGSVGElement, filename: string = 'grafik-area-produksi.svg') {
-  const serializer = new XMLSerializer();
-  let source = serializer.serializeToString(svgElement);
-  if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
-    source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+/**
+ * Menyimpan Grafik SVG sebagai Berkas Vektor SVG Tajam
+ */
+export function unduhSvgSebagaiSVG(
+  elemenSvg: SVGSVGElement,
+  namaBerkas: string = 'grafik-area-produksi.svg'
+) {
+  const penyusunXml = new XMLSerializer();
+  let kodeSumber = penyusunXml.serializeToString(elemenSvg);
+  if (!kodeSumber.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+    kodeSumber = kodeSumber.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
   }
-  const svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
-  const url = URL.createObjectURL(svgBlob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  const blobSvg = new Blob([kodeSumber], { type: 'image/svg+xml;charset=utf-8' });
+  const tautanUrl = URL.createObjectURL(blobSvg);
+  const elemenA = document.createElement('a');
+  elemenA.href = tautanUrl;
+  elemenA.download = namaBerkas;
+  document.body.appendChild(elemenA);
+  elemenA.click();
+  document.body.removeChild(elemenA);
+  URL.revokeObjectURL(tautanUrl);
 }
+export const downloadSvgAsSVG = unduhSvgSebagaiSVG;
 
-// Export SVG Element as high-res PNG image (PRD 5.4 & 14.8)
-export function downloadSvgAsPNG(svgElement: SVGSVGElement, filename: string = 'grafik-area-produksi.png') {
-  const serializer = new XMLSerializer();
-  let source = serializer.serializeToString(svgElement);
-  if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
-    source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+/**
+ * Mengonversi dan Mengunduh Elemen SVG Menjadi Gambar PNG Resolusi Tinggi (Retina 2x)
+ */
+export function unduhSvgSebagaiPNG(
+  elemenSvg: SVGSVGElement,
+  namaBerkas: string = 'grafik-area-produksi.png'
+) {
+  const penyusunXml = new XMLSerializer();
+  let kodeSumber = penyusunXml.serializeToString(elemenSvg);
+  if (!kodeSumber.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+    kodeSumber = kodeSumber.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
   }
-  const svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
-  const url = URL.createObjectURL(svgBlob);
-  const img = new Image();
-  img.onload = () => {
-    const canvas = document.createElement('canvas');
-    // High-resolution retina 2x canvas
-    canvas.width = 1120;
-    canvas.height = 800;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      // White clean background
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const pngUrl = canvas.toDataURL('image/png');
-      const a = document.createElement('a');
-      a.href = pngUrl;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+  const blobSvg = new Blob([kodeSumber], { type: 'image/svg+xml;charset=utf-8' });
+  const tautanUrl = URL.createObjectURL(blobSvg);
+  const gambar = new Image();
+  gambar.onload = () => {
+    const kanvas = document.createElement('canvas');
+    kanvas.width = 1120;
+    kanvas.height = 800;
+    const konteks = kanvas.getContext('2d');
+    if (konteks) {
+      konteks.fillStyle = '#FFFFFF';
+      konteks.fillRect(0, 0, kanvas.width, kanvas.height);
+      konteks.drawImage(gambar, 0, 0, kanvas.width, kanvas.height);
+      const urlPng = kanvas.toDataURL('image/png');
+      const elemenA = document.createElement('a');
+      elemenA.href = urlPng;
+      elemenA.download = namaBerkas;
+      document.body.appendChild(elemenA);
+      elemenA.click();
+      document.body.removeChild(elemenA);
+      URL.revokeObjectURL(tautanUrl);
     }
   };
-  img.src = url;
+  gambar.src = tautanUrl;
 }
+export const downloadSvgAsPNG = unduhSvgSebagaiPNG;

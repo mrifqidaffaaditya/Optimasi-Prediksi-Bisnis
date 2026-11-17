@@ -10,8 +10,8 @@ const ibmPlexSans = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Optimasi & Prediksi Bisnis - Perencanaan Alokasi Sumber Daya & Produksi',
-  description: 'Aplikasi optimasi kombinasi produksi dan alokasi kapasitas sumber daya berbasis peramban (client-side), nyaman di ponsel, tanpa rumus rumit.',
+  title: 'Sistem Optimasi Perencanaan Produksi - Kelompok 9 Matematika Dasar UNNES',
+  description: 'Sistem optimasi alokasi sumber daya dan perencanaan produksi optimal berbasis web client-side, terintegrasi dengan implementasi C++ bebas error (opb.keidev.my.id).',
 };
 
 export const viewport: Viewport = {

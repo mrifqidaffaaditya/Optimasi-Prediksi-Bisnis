@@ -2,10 +2,11 @@
 
 import React from 'react';
 import { useBusinessStore } from '@/store/useBusinessStore';
-import { formatRupiah, formatNumber, formatPercent } from '@/lib/formatters';
-import { exportToExcel, exportToPDF, exportToCSV, downloadSvgAsPNG } from '@/lib/exportUtils';
+import { formatMataUangRupiah, formatAngka } from '@/lib/formatters';
+import { eksporKeExcel, eksporKePDF, eksporKeCSV, unduhSvgSebagaiPNG } from '@/lib/exportUtils';
 import { FeasibleRegionChart } from './FeasibleRegionChart';
 import { WhatIfSection } from './WhatIfSection';
+import { LangkahPerhitunganSimpleks } from './LangkahPerhitunganSimpleks';
 import {
   Sparkles,
   AlertOctagon,
@@ -26,21 +27,31 @@ interface ResultsDashboardProps {
 
 export function ResultsDashboard({ onOpenExport }: ResultsDashboardProps) {
   const {
-    solution,
-    objective,
-    products,
-    resources,
-    usage,
-    applySuggestedFix,
-    setActiveTab,
+    solusiBisnis,
+    tujuanBisnis,
+    daftarProduk,
+    daftarSumberDaya,
+    matriksPemakaian,
+    terapkanSaranPerbaikan,
+    aturTabAktif,
   } = useBusinessStore();
 
-  const isOptimal = solution.status === 'OPTIMAL';
-  const isInfeasible = solution.status === 'INFEASIBLE';
+  const apakahOptimal = solusiBisnis.status === 'OPTIMAL';
+  const apakahTidakLayak =
+    solusiBisnis.status === 'TIDAK_LAYAK' || solusiBisnis.status === 'INFEASIBLE';
+  const apakahMaksimalkan =
+    tujuanBisnis === 'MAKSIMALKAN_UNTUNG' || tujuanBisnis === 'MAXIMIZE_PROFIT';
+
+  const totalNilai = solusiBisnis.totalNilai ?? solusiBisnis.objectiveValue ?? 0;
+  const kalimatKesimpulan = solusiBisnis.kalimatKesimpulan || solusiBisnis.conclusionSentence || '';
+  const produkHasil = solusiBisnis.daftarProduk || solusiBisnis.products || [];
+  const sumberDayaHasil = solusiBisnis.daftarSumberDaya || solusiBisnis.resources || [];
+  const batasanTabrakan =
+    solusiBisnis.daftarBatasanBertabrakan || solusiBisnis.conflictingConstraints || [];
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6 animate-in fade-in">
-      {/* 1. TOP SUMMARY CARD & EXECUTIVE CONCLUSION (PRD 5.3) */}
+      {/* 1. KARTU RINGKASAN EKSEKUTIF UTAMA (PRD 5.3) */}
       <div className="rounded-2xl border border-border bg-surface p-6 shadow-card space-y-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border pb-4">
           <div>
@@ -49,25 +60,25 @@ export function ResultsDashboard({ onOpenExport }: ResultsDashboardProps) {
                 <CheckCircle2 className="h-4 w-4" />
               </span>
               <span className="text-xs font-bold text-accent">
-                Hasil Optimasi Terpilih
+                Hasil Rekomendasi Terpilih
               </span>
               <span className="rounded bg-bg px-2 py-0.5 text-[11px] font-medium text-ink-muted flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                Dihitung dalam {solution.calculationTimeMs} ms
+                Dihitung dalam {solusiBisnis.waktuPerhitunganMs ?? solusiBisnis.calculationTimeMs ?? 0} ms
               </span>
             </div>
 
             <h2 className="mt-2 text-2xl sm:text-3xl font-extrabold text-ink tabular-nums">
-              {formatRupiah(solution.objectiveValue)}
+              {formatMataUangRupiah(totalNilai)}
             </h2>
             <span className="text-xs font-medium text-ink-muted">
-              {objective === 'MAXIMIZE_PROFIT'
-                ? 'Total Proyeksi Keuntungan Maksimal'
+              {apakahMaksimalkan
+                ? 'Total Proyeksi Keuntungan Bersih Maksimal'
                 : 'Total Proyeksi Biaya Operasional Minimum'}
             </span>
           </div>
 
-          {/* Action Buttons: Prominent Ekspor & Ubah Parameter */}
+          {/* Tombol Aksi Cepat */}
           <div className="flex flex-wrap items-center gap-2">
             {onOpenExport && (
               <button
@@ -80,7 +91,7 @@ export function ResultsDashboard({ onOpenExport }: ResultsDashboardProps) {
               </button>
             )}
             <button
-              onClick={() => setActiveTab('wizard')}
+              onClick={() => aturTabAktif('wizard')}
               className="rounded-xl border border-border bg-bg px-3.5 py-2 text-xs font-semibold text-ink hover:bg-surface transition-colors min-touch-target"
             >
               Ubah Parameter Isian
@@ -88,43 +99,48 @@ export function ResultsDashboard({ onOpenExport }: ResultsDashboardProps) {
           </div>
         </div>
 
-        {/* 1-Sentence Human Business Conclusion (PRD 5.3 & 10) */}
+        {/* 1 Kalimat Kesimpulan Ramah Non-IT (PRD 5.3 & 10) */}
         <div className="rounded-xl bg-accent-light/50 border border-accent-subtle p-4">
           <div className="text-xs font-bold text-accent mb-1">
             Kesimpulan Bisnis
           </div>
           <p className="text-sm font-semibold text-ink leading-relaxed">
-            {solution.conclusionSentence}
+            {kalimatKesimpulan}
           </p>
         </div>
 
-        {/* INFEASIBLE ALERT & 1-CLICK FIX (PRD 5.2) */}
-        {isInfeasible && (
+        {/* PEMBERITAHUAN TARGET TIDAK DAPAT DIPENUHI & TOMBOL PERBAIKAN 1-KLIK (PRD 5.2) */}
+        {apakahTidakLayak && (
           <div className="rounded-xl border-2 border-status-infeasible bg-status-infeasible-light p-5 space-y-3">
             <div className="flex items-center gap-2 text-status-infeasible font-bold text-sm">
               <AlertOctagon className="h-5 w-5" />
-              Target Tidak Bisa Dipenuhi
+              Target Belum Bisa Dipenuhi
             </div>
             <p className="text-xs text-ink leading-relaxed">
               Kapasitas yang ada saat ini tidak mencukupi untuk memenuhi ketentuan produksi minimum.
             </p>
 
-            {solution.conflictingConstraints && solution.conflictingConstraints.length > 0 && (
+            {batasanTabrakan.length > 0 && (
               <div className="space-y-2 pt-2 border-t border-status-infeasible-border">
                 <span className="text-xs font-bold text-ink">
-                  Saran Perbaikan Kapasitas (1-Klik):
+                  Saran Solusi Perbaikan Kapasitas (1-Klik Langsung Beres):
                 </span>
-                {solution.conflictingConstraints.map((c, i) => (
+                {batasanTabrakan.map((c, i) => (
                   <div
                     key={i}
                     className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-lg bg-surface p-3 border border-status-infeasible-border text-xs"
                   >
                     <div>
-                      <div className="font-semibold text-ink">{c.reason}</div>
-                      <div className="text-ink-muted text-[11px]">{c.suggestedFix}</div>
+                      <div className="font-semibold text-ink">{c.alasan || c.reason}</div>
+                      <div className="text-ink-muted text-[11px]">{c.saranPerbaikan || c.suggestedFix}</div>
                     </div>
                     <button
-                      onClick={() => applySuggestedFix(c.resourceId, c.suggestedCapacity)}
+                      onClick={() =>
+                        terapkanSaranPerbaikan(
+                          c.idSumberDaya || c.resourceId || '',
+                          c.saranKapasitas ?? c.suggestedCapacity ?? 0
+                        )
+                      }
                       className="inline-flex items-center gap-1.5 rounded-lg bg-status-infeasible px-3 py-1.5 font-bold text-surface hover:opacity-90 transition-opacity min-touch-target self-start sm:self-auto"
                     >
                       <Wrench className="h-3.5 w-3.5" />
@@ -138,8 +154,8 @@ export function ResultsDashboard({ onOpenExport }: ResultsDashboardProps) {
         )}
       </div>
 
-      {/* 2. RECOMMENDED PRODUCTION PLAN CARDS & METRICS */}
-      {isOptimal && (
+      {/* 2. KARTU RENCANA PRODUKSI YANG DIREKOMENDASIKAN */}
+      {apakahOptimal && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-bold text-ink">
@@ -151,61 +167,72 @@ export function ResultsDashboard({ onOpenExport }: ResultsDashboardProps) {
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {solution.products.map((prod) => (
-              <div
-                key={prod.id}
-                className="rounded-xl border border-border bg-surface p-5 shadow-subtle space-y-3"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-accent truncate max-w-[180px]">
-                    {prod.name}
-                  </span>
-                  <span className="rounded bg-accent-light px-2 py-0.5 text-xs font-bold text-accent tabular-nums">
-                    {prod.percentageOfTotal}% dari total
-                  </span>
-                </div>
+            {produkHasil.map((prod) => {
+              const nama = prod.nama || prod.name;
+              const jumlah = prod.jumlahProduksi ?? prod.quantity ?? 0;
+              const satuan = prod.satuan || prod.unit;
+              const untung = prod.keuntunganPerUnit ?? prod.profitPerUnit ?? 0;
+              const kontribusi = prod.kontribusiKeuntungan ?? prod.contribution ?? 0;
+              const porsi = prod.persentaseTotal ?? prod.percentageOfTotal ?? 0;
 
-                <div>
-                  <div className="text-2xl font-extrabold text-ink tabular-nums">
-                    {formatNumber(prod.quantity)} {prod.unit}
+              return (
+                <div
+                  key={prod.id}
+                  className="rounded-xl border border-border bg-surface p-5 shadow-subtle space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-accent truncate max-w-[180px]">
+                      {nama}
+                    </span>
+                    <span className="rounded bg-accent-light px-2 py-0.5 text-xs font-bold text-accent tabular-nums">
+                      {porsi}% dari total
+                    </span>
                   </div>
-                  <div className="text-xs text-ink-muted mt-0.5">
-                    Untung: {formatRupiah(prod.profitPerUnit)} per {prod.unit}
-                  </div>
-                </div>
 
-                <div className="border-t border-border pt-2 text-xs flex justify-between items-center text-ink">
-                  <span className="text-ink-muted">Kontribusi Total:</span>
-                  <strong className="text-status-optimal tabular-nums">
-                    {formatRupiah(prod.contribution)}
-                  </strong>
+                  <div>
+                    <div className="text-2xl font-extrabold text-ink tabular-nums">
+                      {formatAngka(jumlah)} {satuan}
+                    </div>
+                    <div className="text-xs text-ink-muted mt-0.5">
+                      Untung: {formatMataUangRupiah(untung)} per {satuan}
+                    </div>
+                  </div>
+
+                  <div className="border-t border-border pt-2 text-xs flex justify-between items-center text-ink">
+                    <span className="text-ink-muted">Kontribusi Total:</span>
+                    <strong className="text-status-optimal tabular-nums">
+                      {formatMataUangRupiah(kontribusi)}
+                    </strong>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* 3. CHARTS SECTION (2D FEASIBLE REGION & RESOURCE UTILIZATION) */}
-      {isOptimal && (
+      {/* 3. BAGIAN GRAFIK (AREA PRODUKSI 2D & KETERPAIKAN SUMBER DAYA) */}
+      {apakahOptimal && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left: 2D Feasible Region (if 2 products) */}
-          {solution.geometry2D?.is2D ? (
+          {/* Grafik Kiri: Area 2D (Jika Model 2 Produk) */}
+          {solusiBisnis.geometri2D?.apakah2D || solusiBisnis.geometri2D?.is2D ? (
             <FeasibleRegionChart
-              geometry={solution.geometry2D}
-              objectiveType={objective}
+              geometry={solusiBisnis.geometri2D}
+              objectiveType={tujuanBisnis}
             />
           ) : (
             <div className="rounded-xl border border-border bg-surface p-6 shadow-subtle flex flex-col justify-center items-center text-center space-y-3">
               <Layers className="h-10 w-10 text-accent/60" />
-              <h4 className="text-sm font-bold text-ink">Model Multivariat ({solution.products.length} Produk)</h4>
+              <h4 className="text-sm font-bold text-ink">
+                Model Banyak Pilihan ({produkHasil.length} Produk)
+              </h4>
               <p className="text-xs text-ink-muted max-w-sm">
-                Grafik 2D area khusus untuk model 2 produk. Untuk {solution.products.length} produk, perhatikan tabel kontribusi dan diagram pemakaian sumber daya di samping.
+                Grafik visual 2D aktif khusus untuk model 2 produk. Untuk {produkHasil.length} produk, amati tabel kontribusi keuntungan dan diagram kapasitas sumber daya di samping.
               </p>
             </div>
           )}
 
-          {/* Right: Resource Utilization & Bottleneck Chart */}
+          {/* Grafik Kanan: Pemakaian Kapasitas Sumber Daya & Penghambat */}
           <div className="rounded-xl border border-border bg-surface p-5 shadow-subtle space-y-4">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <div>
@@ -213,61 +240,72 @@ export function ResultsDashboard({ onOpenExport }: ResultsDashboardProps) {
                   2. Pemakaian Kapasitas Sumber Daya
                 </h3>
                 <p className="text-xs text-ink-muted">
-                  Bahan atau jam kerja yang terpakai penuh adalah batas penghambat utama.
+                  Bahan atau jam kerja yang terpakai penuh adalah batas penghambat utama laba usaha.
                 </p>
               </div>
             </div>
 
             <div className="space-y-4">
-              {solution.resources.map((res) => (
-                <div key={res.id} className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-ink flex items-center gap-1.5">
-                      {res.name}
-                      {res.binding && (
-                        <span className="rounded bg-status-infeasible text-surface px-1.5 py-0.5 text-[10px] font-bold">
-                          Terpakai Penuh
-                        </span>
-                      )}
-                    </span>
-                    <span className="tabular-nums font-medium text-ink-muted">
-                      {formatNumber(res.used)} / {formatNumber(res.capacity)} {res.unit} ({res.usagePercent}%)
-                    </span>
-                  </div>
+              {sumberDayaHasil.map((res) => {
+                const nama = res.nama || res.name;
+                const used = res.kapasitasTerpakai ?? res.used ?? 0;
+                const cap = res.kapasitasTersedia ?? res.capacity ?? 0;
+                const satuan = res.satuan || res.unit;
+                const porsiPakai = res.persentasePemakaian ?? res.usagePercent ?? 0;
+                const sisa = res.sisaKapasitas ?? res.slack ?? 0;
+                const terpakaiPenuh = res.terpakaiPenuh ?? res.binding ?? false;
+                const nilaiTambah = res.nilaiTambahPerUnit ?? res.shadowPrice ?? 0;
 
-                  {/* Visual Progress Bar */}
-                  <div className="h-2 w-full rounded-full bg-border overflow-hidden">
-                    <div
-                      className={`h-full w-full rounded-full origin-left transition-transform ${
-                        res.binding ? 'bg-status-infeasible' : 'bg-accent'
-                      }`}
-                      style={{
-                        transform: `scaleX(${Math.min(1, res.usagePercent / 100)})`,
-                      }}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between text-[11px] text-ink-muted">
-                    <span>
-                      Sisa kapasitas: <strong>{formatNumber(res.slack)} {res.unit}</strong>
-                    </span>
-                    {res.shadowPrice > 0 ? (
-                      <span className="text-status-optimal font-semibold">
-                        +1 {res.unit} kapasitas = +{formatRupiah(res.shadowPrice)} untung
+                return (
+                  <div key={res.id} className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-ink flex items-center gap-1.5">
+                        {nama}
+                        {terpakaiPenuh && (
+                          <span className="rounded bg-status-infeasible text-surface px-1.5 py-0.5 text-[10px] font-bold">
+                            Terpakai Penuh
+                          </span>
+                        )}
                       </span>
-                    ) : (
-                      <span>Kapasitas masih mencukupi</span>
-                    )}
+                      <span className="tabular-nums font-medium text-ink-muted">
+                        {formatAngka(used)} / {formatAngka(cap)} {satuan} ({porsiPakai}%)
+                      </span>
+                    </div>
+
+                    {/* Progress Bar Visual */}
+                    <div className="h-2 w-full rounded-full bg-border overflow-hidden">
+                      <div
+                        className={`h-full w-full rounded-full origin-left transition-transform ${
+                          terpakaiPenuh ? 'bg-status-infeasible' : 'bg-accent'
+                        }`}
+                        style={{
+                          transform: `scaleX(${Math.min(1, porsiPakai / 100)})`,
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] text-ink-muted">
+                      <span>
+                        Sisa kapasitas: <strong>{formatAngka(sisa)} {satuan}</strong>
+                      </span>
+                      {nilaiTambah > 0 ? (
+                        <span className="text-status-optimal font-semibold">
+                          +1 {satuan} kapasitas = +{formatMataUangRupiah(nilaiTambah)} untung
+                        </span>
+                      ) : (
+                        <span>Kapasitas masih mencukupi</span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
       )}
 
-      {/* 4. TORNADO CHART: FAKTOR PALING BERPENGARUH (PRD 5.2 & 5.7) */}
-      {isOptimal && (
+      {/* 4. PERINGKAT SUMBER DAYA PALING BERPENGARUH (TORNADO CHART / SHADOW PRICE) */}
+      {apakahOptimal && (
         <div className="rounded-xl border border-border bg-surface p-5 shadow-subtle space-y-4">
           <div className="flex items-center justify-between">
             <div>
@@ -282,44 +320,64 @@ export function ResultsDashboard({ onOpenExport }: ResultsDashboardProps) {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {[...solution.resources]
-              .sort((a, b) => b.shadowPrice - a.shadowPrice)
-              .map((r, rank) => (
-                <div
-                  key={r.id}
-                  className={`rounded-lg border p-3.5 space-y-1.5 ${
-                    rank === 0 && r.shadowPrice > 0
-                      ? 'border-status-optimal-border bg-status-optimal-light/40'
-                      : 'border-border bg-bg/50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-bold text-ink">
-                      #{rank + 1} {r.name}
-                    </span>
-                    {r.binding && (
-                      <span className="text-[10px] text-status-infeasible font-bold">
-                        Penghambat
+            {[...sumberDayaHasil]
+              .sort(
+                (a, b) =>
+                  (b.nilaiTambahPerUnit ?? b.shadowPrice ?? 0) -
+                  (a.nilaiTambahPerUnit ?? a.shadowPrice ?? 0)
+              )
+              .map((r, peringkat) => {
+                const nama = r.nama || r.name;
+                const nilaiTambah = r.nilaiTambahPerUnit ?? r.shadowPrice ?? 0;
+                const satuan = r.satuan || r.unit;
+                const terpakaiPenuh = r.terpakaiPenuh ?? r.binding ?? false;
+
+                return (
+                  <div
+                    key={r.id}
+                    className={`rounded-lg border p-3.5 space-y-1.5 ${
+                      peringkat === 0 && nilaiTambah > 0
+                        ? 'border-status-optimal-border bg-status-optimal-light/40'
+                        : 'border-border bg-bg/50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-ink">
+                        #{peringkat + 1} {nama}
                       </span>
-                    )}
+                      {terpakaiPenuh && (
+                        <span className="text-[10px] text-status-infeasible font-bold">
+                          Penghambat Utama
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-lg font-extrabold text-accent tabular-nums">
+                      +{formatMataUangRupiah(nilaiTambah)}
+                    </div>
+                    <div className="text-[11px] text-ink-muted">
+                      tambahan untung per 1 {satuan} kapasitas ekstra
+                    </div>
                   </div>
-                  <div className="text-lg font-extrabold text-accent tabular-nums">
-                    +{formatRupiah(r.shadowPrice)}
-                  </div>
-                  <div className="text-[11px] text-ink-muted">
-                    tambahan untung per 1 {r.unit} kapasitas ekstra
-                  </div>
-                </div>
-              ))}
+                );
+              })}
           </div>
         </div>
       )}
 
-      {/* 5. INTERACTIVE "BAGAIMANA JIKA" WHAT-IF SIMULATION */}
-      {isOptimal && <WhatIfSection />}
+      {/* 5. SIMULASI "BAGAIMANA JIKA" (WHAT-IF) */}
+      {apakahOptimal && <WhatIfSection />}
 
-      {/* 6. DEDICATED QUICK EXPORT SECTION (PRD 6) */}
-      {isOptimal && (
+      {/* 6. LANGKAH PERHITUNGAN SIMPLEKS & VERIFIKASI SPL (C++ IMPLEMENTATION) */}
+      {solusiBisnis.logPerhitungan && (
+        <LangkahPerhitunganSimpleks
+          logPerhitungan={solusiBisnis.logPerhitungan}
+          totalKeuntungan={totalNilai}
+          apakahOptimal={apakahOptimal}
+        />
+      )}
+
+      {/* 7. PUSAT UNDUH & EKSPOR LAPORAN (PRD 6) */}
+      {apakahOptimal && (
         <div className="rounded-2xl border-2 border-accent/30 bg-surface p-5 shadow-subtle space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border pb-3">
             <div>
@@ -334,9 +392,17 @@ export function ResultsDashboard({ onOpenExport }: ResultsDashboardProps) {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {/* Download Excel */}
+            {/* Unduh Excel */}
             <button
-              onClick={() => exportToExcel(objective, products, resources, usage, solution)}
+              onClick={() =>
+                eksporKeExcel(
+                  tujuanBisnis,
+                  daftarProduk,
+                  daftarSumberDaya,
+                  matriksPemakaian,
+                  solusiBisnis
+                )
+              }
               className="flex items-center gap-3 rounded-xl border border-border bg-bg/60 p-3.5 hover:bg-surface hover:border-accent transition-colors text-left min-touch-target"
             >
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-status-optimal-light text-status-optimal shrink-0">
@@ -348,9 +414,9 @@ export function ResultsDashboard({ onOpenExport }: ResultsDashboardProps) {
               </div>
             </button>
 
-            {/* Download PDF */}
+            {/* Unduh PDF */}
             <button
-              onClick={() => exportToPDF(objective, solution)}
+              onClick={() => eksporKePDF(tujuanBisnis, solusiBisnis)}
               className="flex items-center gap-3 rounded-xl border border-border bg-bg/60 p-3.5 hover:bg-surface hover:border-accent transition-colors text-left min-touch-target"
             >
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-status-infeasible-light text-status-infeasible shrink-0">
@@ -362,12 +428,14 @@ export function ResultsDashboard({ onOpenExport }: ResultsDashboardProps) {
               </div>
             </button>
 
-            {/* Download Gambar Grafik PNG */}
+            {/* Unduh Gambar Grafik PNG */}
             <button
               onClick={() => {
-                const svgEl = document.querySelector('svg[aria-label="Grafik visualisasi area yang memungkinkan"]') as SVGSVGElement;
-                if (svgEl) {
-                  downloadSvgAsPNG(svgEl, 'grafik-area-produksi.png');
+                const elemenSvg = document.querySelector(
+                  'svg[aria-label="Grafik visualisasi area yang memungkinkan"]'
+                ) as SVGSVGElement;
+                if (elemenSvg) {
+                  unduhSvgSebagaiPNG(elemenSvg, 'grafik-area-produksi.png');
                 } else {
                   alert('Grafik visualisasi 2D khusus untuk model 2 produk aktif.');
                 }
@@ -383,9 +451,9 @@ export function ResultsDashboard({ onOpenExport }: ResultsDashboardProps) {
               </div>
             </button>
 
-            {/* Download CSV */}
+            {/* Unduh CSV */}
             <button
-              onClick={() => exportToCSV(solution, objective)}
+              onClick={() => eksporKeCSV(solusiBisnis, tujuanBisnis)}
               className="flex items-center gap-3 rounded-xl border border-border bg-bg/60 p-3.5 hover:bg-surface hover:border-accent transition-colors text-left min-touch-target"
             >
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-bg border border-border text-ink-muted shrink-0">

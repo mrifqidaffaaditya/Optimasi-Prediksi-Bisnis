@@ -1,99 +1,137 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Product, Resource, UsageMatrix } from '@/types';
+import { Produk, SumberDaya, MatriksPemakaian } from '@/types';
 
-// Fallback rule-based heuristic parser for local processing
-function parseLocally(text: string): {
-  products: Product[];
-  resources: Resource[];
-  usage: UsageMatrix;
+// Parser Heuristik Cerdas Lokal (Bekerja secara instan tanpa perlu API key luar)
+function uraikanSecaraLokal(teks: string): {
+  daftarProduk: Produk[];
+  products: Produk[];
+  daftarSumberDaya: SumberDaya[];
+  resources: SumberDaya[];
+  matriksPemakaian: MatriksPemakaian;
+  usage: MatriksPemakaian;
 } {
-  const lower = text.toLowerCase();
+  const teksKecil = teks.toLowerCase();
 
-  if (lower.includes('katering') || lower.includes('bento') || lower.includes('ayam')) {
+  if (teksKecil.includes('katering') || teksKecil.includes('bento') || teksKecil.includes('ayam')) {
+    const daftarProduk: Produk[] = [
+      { id: 'p1', nama: 'Bento Ayam', name: 'Bento Ayam', keuntungan: 14000, profit: 14000, satuan: 'porsi', unit: 'porsi', hanyaJumlahUtuh: true, integerOnly: true },
+      { id: 'p2', nama: 'Bento Sapi', name: 'Bento Sapi', keuntungan: 24000, profit: 24000, satuan: 'porsi', unit: 'porsi', hanyaJumlahUtuh: true, integerOnly: true },
+    ];
+    const daftarSumberDaya: SumberDaya[] = [
+      { id: 'r1', nama: 'Daging Ayam', name: 'Daging Ayam', kapasitas: 30, capacity: 30, satuan: 'kg', unit: 'kg', jenisBatasan: 'TIDAK_LEBIH_DARI', type: 'LEQ' },
+      { id: 'r2', nama: 'Daging Sapi', name: 'Daging Sapi', kapasitas: 18, capacity: 18, satuan: 'kg', unit: 'kg', jenisBatasan: 'TIDAK_LEBIH_DARI', type: 'LEQ' },
+      { id: 'r3', nama: 'Jam Kerja Dapur', name: 'Jam Kerja Dapur', kapasitas: 40, capacity: 40, satuan: 'jam', unit: 'jam', jenisBatasan: 'TIDAK_LEBIH_DARI', type: 'LEQ' },
+    ];
+    const matriksPemakaian: MatriksPemakaian = {
+      p1: { r1: 0.25, r2: 0, r3: 0.2 },
+      p2: { r1: 0, r2: 0.2, r3: 0.25 },
+    };
+
     return {
-      products: [
-        { id: 'p1', name: 'Bento Ayam', profit: 14000, unit: 'porsi', integerOnly: true },
-        { id: 'p2', name: 'Bento Sapi', profit: 24000, unit: 'porsi', integerOnly: true },
-      ],
-      resources: [
-        { id: 'r1', name: 'Daging Ayam', capacity: 30, unit: 'kg', type: 'LEQ' },
-        { id: 'r2', name: 'Daging Sapi', capacity: 18, unit: 'kg', type: 'LEQ' },
-        { id: 'r3', name: 'Jam Kerja Dapur', capacity: 40, unit: 'jam', type: 'LEQ' },
-      ],
-      usage: {
-        p1: { r1: 0.25, r2: 0, r3: 0.2 },
-        p2: { r1: 0, r2: 0.2, r3: 0.25 },
-      },
+      daftarProduk,
+      products: daftarProduk,
+      daftarSumberDaya,
+      resources: daftarSumberDaya,
+      matriksPemakaian,
+      usage: matriksPemakaian,
     };
   }
 
-  if (lower.includes('konveksi') || lower.includes('kaos') || lower.includes('kemeja') || lower.includes('baju')) {
+  if (teksKecil.includes('konveksi') || teksKecil.includes('kaos') || teksKecil.includes('kemeja') || teksKecil.includes('baju')) {
+    const daftarProduk: Produk[] = [
+      { id: 'p1', nama: 'Kaos Polos', name: 'Kaos Polos', keuntungan: 18000, profit: 18000, satuan: 'potong', unit: 'potong', hanyaJumlahUtuh: true, integerOnly: true },
+      { id: 'p2', nama: 'Kemeja Katun', name: 'Kemeja Katun', keuntungan: 38000, profit: 38000, satuan: 'potong', unit: 'potong', hanyaJumlahUtuh: true, integerOnly: true },
+    ];
+    const daftarSumberDaya: SumberDaya[] = [
+      { id: 'r1', nama: 'Kain Katun', name: 'Kain Katun', kapasitas: 200, capacity: 200, satuan: 'meter', unit: 'meter', jenisBatasan: 'TIDAK_LEBIH_DARI', type: 'LEQ' },
+      { id: 'r2', nama: 'Jam Mesin Jahit', name: 'Jam Mesin Jahit', kapasitas: 120, capacity: 120, satuan: 'jam', unit: 'jam', jenisBatasan: 'TIDAK_LEBIH_DARI', type: 'LEQ' },
+    ];
+    const matriksPemakaian: MatriksPemakaian = {
+      p1: { r1: 1.2, r2: 0.5 },
+      p2: { r1: 1.8, r2: 1.2 },
+    };
+
     return {
-      products: [
-        { id: 'p1', name: 'Kaos Polos', profit: 18000, unit: 'potong', integerOnly: true },
-        { id: 'p2', name: 'Kemeja Katun', profit: 38000, unit: 'potong', integerOnly: true },
-      ],
-      resources: [
-        { id: 'r1', name: 'Kain Katun', capacity: 200, unit: 'meter', type: 'LEQ' },
-        { id: 'r2', name: 'Jam Mesin Jahit', capacity: 120, unit: 'jam', type: 'LEQ' },
-      ],
-      usage: {
-        p1: { r1: 1.2, r2: 0.5 },
-        p2: { r1: 1.8, r2: 1.2 },
-      },
+      daftarProduk,
+      products: daftarProduk,
+      daftarSumberDaya,
+      resources: daftarSumberDaya,
+      matriksPemakaian,
+      usage: matriksPemakaian,
     };
   }
 
-  if (lower.includes('kopi') || lower.includes('coffee') || lower.includes('matcha') || lower.includes('minuman')) {
+  if (teksKecil.includes('kopi') || teksKecil.includes('coffee') || teksKecil.includes('matcha') || teksKecil.includes('minuman')) {
+    const daftarProduk: Produk[] = [
+      { id: 'p1', nama: 'Kopi Susu Aren', name: 'Kopi Susu Aren', keuntungan: 8000, profit: 8000, satuan: 'cup', unit: 'cup', hanyaJumlahUtuh: true, integerOnly: true },
+      { id: 'p2', nama: 'Matcha Latte', name: 'Matcha Latte', keuntungan: 12000, profit: 12000, satuan: 'cup', unit: 'cup', hanyaJumlahUtuh: true, integerOnly: true },
+    ];
+    const daftarSumberDaya: SumberDaya[] = [
+      { id: 'r1', nama: 'Susu Segar', name: 'Susu Segar', kapasitas: 80, capacity: 80, satuan: 'liter', unit: 'liter', jenisBatasan: 'TIDAK_LEBIH_DARI', type: 'LEQ' },
+      { id: 'r2', nama: 'Biji Kopi', name: 'Biji Kopi', kapasitas: 15, capacity: 15, satuan: 'kg', unit: 'kg', jenisBatasan: 'TIDAK_LEBIH_DARI', type: 'LEQ' },
+      { id: 'r3', nama: 'Bubuk Matcha', name: 'Bubuk Matcha', kapasitas: 8, capacity: 8, satuan: 'kg', unit: 'kg', jenisBatasan: 'TIDAK_LEBIH_DARI', type: 'LEQ' },
+    ];
+    const matriksPemakaian: MatriksPemakaian = {
+      p1: { r1: 0.15, r2: 0.02, r3: 0 },
+      p2: { r1: 0.18, r2: 0, r3: 0.025 },
+    };
+
     return {
-      products: [
-        { id: 'p1', name: 'Kopi Susu Aren', profit: 8000, unit: 'cup', integerOnly: true },
-        { id: 'p2', name: 'Matcha Latte', profit: 12000, unit: 'cup', integerOnly: true },
-      ],
-      resources: [
-        { id: 'r1', name: 'Susu Segar', capacity: 80, unit: 'liter', type: 'LEQ' },
-        { id: 'r2', name: 'Biji Kopi', capacity: 15, unit: 'kg', type: 'LEQ' },
-        { id: 'r3', name: 'Bubuk Matcha', capacity: 8, unit: 'kg', type: 'LEQ' },
-      ],
-      usage: {
-        p1: { r1: 0.15, r2: 0.02, r3: 0 },
-        p2: { r1: 0.18, r2: 0, r3: 0.025 },
-      },
+      daftarProduk,
+      products: daftarProduk,
+      daftarSumberDaya,
+      resources: daftarSumberDaya,
+      matriksPemakaian,
+      usage: matriksPemakaian,
     };
   }
 
-  if (lower.includes('roti') || lower.includes('bakery') || lower.includes('kue')) {
+  if (teksKecil.includes('roti') || teksKecil.includes('bakery') || teksKecil.includes('kue')) {
+    const daftarProduk: Produk[] = [
+      { id: 'p1', nama: 'Roti Tawar Spesial', name: 'Roti Tawar Spesial', keuntungan: 6000, profit: 6000, satuan: 'bungkus', unit: 'bungkus', hanyaJumlahUtuh: true, integerOnly: true },
+      { id: 'p2', nama: 'Roti Manis Cokelat', name: 'Roti Manis Cokelat', keuntungan: 9000, profit: 9000, satuan: 'bungkus', unit: 'bungkus', hanyaJumlahUtuh: true, integerOnly: true },
+    ];
+    const daftarSumberDaya: SumberDaya[] = [
+      { id: 'r1', nama: 'Tepung Terigu', name: 'Tepung Terigu', kapasitas: 120, capacity: 120, satuan: 'kg', unit: 'kg', jenisBatasan: 'TIDAK_LEBIH_DARI', type: 'LEQ' },
+      { id: 'r2', nama: 'Mentega', name: 'Mentega', kapasitas: 45, capacity: 45, satuan: 'kg', unit: 'kg', jenisBatasan: 'TIDAK_LEBIH_DARI', type: 'LEQ' },
+      { id: 'r3', nama: 'Waktu Oven', name: 'Waktu Oven', kapasitas: 50, capacity: 50, satuan: 'jam', unit: 'jam', jenisBatasan: 'TIDAK_LEBIH_DARI', type: 'LEQ' },
+    ];
+    const matriksPemakaian: MatriksPemakaian = {
+      p1: { r1: 0.25, r2: 0.05, r3: 0.08 },
+      p2: { r1: 0.2, r2: 0.12, r3: 0.1 },
+    };
+
     return {
-      products: [
-        { id: 'p1', name: 'Roti Tawar Spesial', profit: 6000, unit: 'bungkus', integerOnly: true },
-        { id: 'p2', name: 'Roti Manis Cokelat', profit: 9000, unit: 'bungkus', integerOnly: true },
-      ],
-      resources: [
-        { id: 'r1', name: 'Tepung Terigu', capacity: 120, unit: 'kg', type: 'LEQ' },
-        { id: 'r2', name: 'Mentega', capacity: 45, unit: 'kg', type: 'LEQ' },
-        { id: 'r3', name: 'Waktu Oven', capacity: 50, unit: 'jam', type: 'LEQ' },
-      ],
-      usage: {
-        p1: { r1: 0.25, r2: 0.05, r3: 0.08 },
-        p2: { r1: 0.2, r2: 0.12, r3: 0.1 },
-      },
+      daftarProduk,
+      products: daftarProduk,
+      daftarSumberDaya,
+      resources: daftarSumberDaya,
+      matriksPemakaian,
+      usage: matriksPemakaian,
     };
   }
 
-  // Generic fallback business model
+  // Model cadangan bisnis umum
+  const daftarProduk: Produk[] = [
+    { id: 'p1', nama: 'Produk Standar A', name: 'Produk Standar A', keuntungan: 15000, profit: 15000, satuan: 'unit', unit: 'unit', hanyaJumlahUtuh: true, integerOnly: true },
+    { id: 'p2', nama: 'Produk Premium B', name: 'Produk Premium B', keuntungan: 28000, profit: 28000, satuan: 'unit', unit: 'unit', hanyaJumlahUtuh: true, integerOnly: true },
+  ];
+  const daftarSumberDaya: SumberDaya[] = [
+    { id: 'r1', nama: 'Bahan Baku Pokok', name: 'Bahan Baku Pokok', kapasitas: 150, capacity: 150, satuan: 'kg', unit: 'kg', jenisBatasan: 'TIDAK_LEBIH_DARI', type: 'LEQ' },
+    { id: 'r2', nama: 'Waktu Operasional Mesin', name: 'Waktu Operasional Mesin', kapasitas: 80, capacity: 80, satuan: 'jam kerja', unit: 'jam kerja', jenisBatasan: 'TIDAK_LEBIH_DARI', type: 'LEQ' },
+  ];
+  const matriksPemakaian: MatriksPemakaian = {
+    p1: { r1: 0.6, r2: 0.3 },
+    p2: { r1: 1.2, r2: 0.5 },
+  };
+
   return {
-    products: [
-      { id: 'p1', name: 'Produk Standar A', profit: 15000, unit: 'unit', integerOnly: true },
-      { id: 'p2', name: 'Produk Premium B', profit: 28000, unit: 'unit', integerOnly: true },
-    ],
-    resources: [
-      { id: 'r1', name: 'Bahan Baku Pokok', capacity: 150, unit: 'kg', type: 'LEQ' },
-      { id: 'r2', name: 'Waktu Operasional Mesin', capacity: 80, unit: 'jam kerja', type: 'LEQ' },
-    ],
-    usage: {
-      p1: { r1: 0.6, r2: 0.3 },
-      p2: { r1: 1.2, r2: 0.5 },
-    },
+    daftarProduk,
+    products: daftarProduk,
+    daftarSumberDaya,
+    resources: daftarSumberDaya,
+    matriksPemakaian,
+    usage: matriksPemakaian,
   };
 }
 
@@ -102,15 +140,15 @@ export async function POST(req: NextRequest) {
     const { prompt } = await req.json();
 
     if (!prompt || typeof prompt !== 'string') {
-      return NextResponse.json({ error: 'Prompt teks wajib diisi' }, { status: 400 });
+      return NextResponse.json({ error: 'Cerita teks usaha wajib diisi.' }, { status: 400 });
     }
 
-    const provider = process.env.AI_PROVIDER || 'local';
-    const geminiKey = process.env.GEMINI_API_KEY;
-    const groqKey = process.env.GROQ_API_KEY;
-    const openaiKey = process.env.OPENAI_API_KEY;
+    const penyedia = process.env.AI_PROVIDER || 'local';
+    const kunciGemini = process.env.GEMINI_API_KEY;
+    const kunciGroq = process.env.GROQ_API_KEY;
+    const kunciOpenAI = process.env.OPENAI_API_KEY;
 
-    const systemPrompt = `Anda adalah asisten pembuat model optimasi bisnis matematis Linear Programming.
+    const instruksiSistem = `Anda adalah asisten pembuat model optimasi bisnis matematis Linear Programming.
 Tugas Anda adalah membaca cerita usaha pengguna dan menyusunnya menjadi format JSON yang valid.
 Format JSON yang dihasilkan HARUS persis seperti berikut (tanpa markdown tambahan):
 {
@@ -134,18 +172,18 @@ Catatan:
 Hanya kembalikan JSON murni tanpa penjelasan awalan atau akhiran.`;
 
     // 1. Google Gemini Provider
-    if ((provider === 'gemini' || !provider || provider === 'local') && geminiKey) {
+    if ((penyedia === 'gemini' || !penyedia || penyedia === 'local') && kunciGemini) {
       try {
         const model = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`;
-        const response = await fetch(url, {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${kunciGemini}`;
+        const respons = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [
               {
                 role: 'user',
-                parts: [{ text: `${systemPrompt}\n\nCerita Usaha Pengguna:\n${prompt}` }],
+                parts: [{ text: `${instruksiSistem}\n\nCerita Usaha Pengguna:\n${prompt}` }],
               },
             ],
             generationConfig: {
@@ -155,13 +193,33 @@ Hanya kembalikan JSON murni tanpa penjelasan awalan atau akhiran.`;
           }),
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (rawText) {
-            const parsed = JSON.parse(rawText);
-            if (parsed.products && parsed.resources && parsed.usage) {
-              return NextResponse.json({ ...parsed, source: 'gemini' });
+        if (respons.ok) {
+          const data = await respons.json();
+          const teksMentah = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (teksMentah) {
+            const diurai = JSON.parse(teksMentah);
+            if (diurai.products && diurai.resources && diurai.usage) {
+              const daftarProduk = diurai.products.map((p: any) => ({
+                ...p,
+                nama: p.name,
+                keuntungan: p.profit,
+                satuan: p.unit,
+                hanyaJumlahUtuh: p.integerOnly,
+              }));
+              const daftarSumberDaya = diurai.resources.map((r: any) => ({
+                ...r,
+                nama: r.name,
+                kapasitas: r.capacity,
+                satuan: r.unit,
+                jenisBatasan: r.type,
+              }));
+              return NextResponse.json({
+                ...diurai,
+                daftarProduk,
+                daftarSumberDaya,
+                matriksPemakaian: diurai.usage,
+                source: 'gemini',
+              });
             }
           }
         }
@@ -171,19 +229,19 @@ Hanya kembalikan JSON murni tanpa penjelasan awalan atau akhiran.`;
     }
 
     // 2. Groq Cloud Provider
-    if ((provider === 'groq' || groqKey) && groqKey) {
+    if ((penyedia === 'groq' || kunciGroq) && kunciGroq) {
       try {
         const model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        const respons = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${groqKey}`,
+            Authorization: `Bearer ${kunciGroq}`,
           },
           body: JSON.stringify({
             model,
             messages: [
-              { role: 'system', content: systemPrompt },
+              { role: 'system', content: instruksiSistem },
               { role: 'user', content: prompt },
             ],
             response_format: { type: 'json_object' },
@@ -191,13 +249,33 @@ Hanya kembalikan JSON murni tanpa penjelasan awalan atau akhiran.`;
           }),
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          const rawText = data?.choices?.[0]?.message?.content;
-          if (rawText) {
-            const parsed = JSON.parse(rawText);
-            if (parsed.products && parsed.resources && parsed.usage) {
-              return NextResponse.json({ ...parsed, source: 'groq' });
+        if (respons.ok) {
+          const data = await respons.json();
+          const teksMentah = data?.choices?.[0]?.message?.content;
+          if (teksMentah) {
+            const diurai = JSON.parse(teksMentah);
+            if (diurai.products && diurai.resources && diurai.usage) {
+              const daftarProduk = diurai.products.map((p: any) => ({
+                ...p,
+                nama: p.name,
+                keuntungan: p.profit,
+                satuan: p.unit,
+                hanyaJumlahUtuh: p.integerOnly,
+              }));
+              const daftarSumberDaya = diurai.resources.map((r: any) => ({
+                ...r,
+                nama: r.name,
+                kapasitas: r.capacity,
+                satuan: r.unit,
+                jenisBatasan: r.type,
+              }));
+              return NextResponse.json({
+                ...diurai,
+                daftarProduk,
+                daftarSumberDaya,
+                matriksPemakaian: diurai.usage,
+                source: 'groq',
+              });
             }
           }
         }
@@ -207,19 +285,19 @@ Hanya kembalikan JSON murni tanpa penjelasan awalan atau akhiran.`;
     }
 
     // 3. OpenAI Provider
-    if ((provider === 'openai' || openaiKey) && openaiKey) {
+    if ((penyedia === 'openai' || kunciOpenAI) && kunciOpenAI) {
       try {
         const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        const respons = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${openaiKey}`,
+            Authorization: `Bearer ${kunciOpenAI}`,
           },
           body: JSON.stringify({
             model,
             messages: [
-              { role: 'system', content: systemPrompt },
+              { role: 'system', content: instruksiSistem },
               { role: 'user', content: prompt },
             ],
             response_format: { type: 'json_object' },
@@ -227,13 +305,33 @@ Hanya kembalikan JSON murni tanpa penjelasan awalan atau akhiran.`;
           }),
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          const rawText = data?.choices?.[0]?.message?.content;
-          if (rawText) {
-            const parsed = JSON.parse(rawText);
-            if (parsed.products && parsed.resources && parsed.usage) {
-              return NextResponse.json({ ...parsed, source: 'openai' });
+        if (respons.ok) {
+          const data = await respons.json();
+          const teksMentah = data?.choices?.[0]?.message?.content;
+          if (teksMentah) {
+            const diurai = JSON.parse(teksMentah);
+            if (diurai.products && diurai.resources && diurai.usage) {
+              const daftarProduk = diurai.products.map((p: any) => ({
+                ...p,
+                nama: p.name,
+                keuntungan: p.profit,
+                satuan: p.unit,
+                hanyaJumlahUtuh: p.integerOnly,
+              }));
+              const daftarSumberDaya = diurai.resources.map((r: any) => ({
+                ...r,
+                nama: r.name,
+                kapasitas: r.capacity,
+                satuan: r.unit,
+                jenisBatasan: r.type,
+              }));
+              return NextResponse.json({
+                ...diurai,
+                daftarProduk,
+                daftarSumberDaya,
+                matriksPemakaian: diurai.usage,
+                source: 'openai',
+              });
             }
           }
         }
@@ -242,11 +340,11 @@ Hanya kembalikan JSON murni tanpa penjelasan awalan atau akhiran.`;
       }
     }
 
-    // Default: Fallback to smart local heuristic parser
-    const fallbackModel = parseLocally(prompt);
-    return NextResponse.json({ ...fallbackModel, source: 'local' });
-  } catch (error: any) {
-    console.error('Text-to-model API error:', error);
+    // Jalur Cadangan Utama: Parser Cerdas Heuristik Lokal
+    const modelCadangan = uraikanSecaraLokal(prompt);
+    return NextResponse.json({ ...modelCadangan, source: 'local' });
+  } catch (galat: any) {
+    console.error('Galat API text-to-model:', galat);
     return NextResponse.json(
       { error: 'Gagal memproses cerita usaha' },
       { status: 500 }

@@ -39,3 +39,10 @@ next-env.d.ts
 /.claude
 /agent
 
+# C++ Build outputs & local test artifacts
+/cpp/optimasi_produksi
+/cpp/*.exe
+/cpp/*.out
+/hasil_optimasi.csv
+
+
