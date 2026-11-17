@@ -11,9 +11,8 @@ using namespace std;
 
 // ============================================================================
 // SISTEM OPTIMASI PERENCANAAN PRODUKSI (TERVERIFIKASI BEBAS ERROR)
-// Kelompok 9 - Matematika Dasar (Universitas Negeri Semarang)
-// Terintegrasi dengan Web Dashboard: https://opb.keidev.my.id
 // Metode: Pemrograman Linear Simpleks & Eliminasi Gauss-Jordan
+// Terintegrasi dengan Web Dashboard: https://opb.keidev.my.id
 // ============================================================================
 
 struct DataKendala {
@@ -497,12 +496,12 @@ void simpanHasilKeCSV(const vector<string> &daftarNamaProduk,
 int main() {
     cout << "====================================================================\n";
     cout << "   SISTEM PERENCANAAN PRODUKSI OPTIMAL (UMKM & INDUSTRI)\n";
-    cout << "   Kelompok 9 - Matematika Dasar | Web: opb.keidev.my.id\n";
     cout << "   Metode: Pemrograman Linear Simpleks & Eliminasi Gauss-Jordan\n";
+    cout << "   Web Dashboard: https://opb.keidev.my.id\n";
     cout << "====================================================================\n";
     cout << "Pilih data perencanaan:\n";
-    cout << "  1. Kasus Utama: UMKM Konveksi Busana (Kemeja Batik & Tunik Modern)\n";
-    cout << "  2. Kasus Roti Rumahan: Usaha Bakery (Roti Keju & Roti Coklat)\n";
+    cout << "  1. Kasus Utama: Usaha Roti Rumahan (Roti Keju & Roti Coklat)\n";
+    cout << "  2. Kasus Alternatif: UMKM Konveksi Busana (Kemeja Batik & Tunik Modern)\n";
     cout << "  3. Masukkan Data Usaha Baru Secara Manual\n";
 
     int pilihanMenu = bacaBilanganBulat("Pilih menu (1, 2, atau 3): ", 1, 3);
@@ -514,19 +513,7 @@ int main() {
     vector<DataKendala> daftarKendala;
 
     if (pilihanMenu == 1) {
-        // Data Utama: UMKM Konveksi Karya Busana (UNNES Kelompok 9)
-        totalProduk        = 2;
-        daftarNamaProduk   = {"Kemeja Batik", "Tunik Modern"};
-        daftarSatuanProduk = {"potong", "potong"};
-        keuntunganPerUnit  = {65000.0, 85000.0};
-
-        daftarKendala = {
-            {"Bahan Baku Kain", "meter", {2.0, 2.5}, "<=", 95.0},
-            {"Jam Kerja Jahit", "jam",   {3.0, 2.0}, "<=", 120.0},
-            {"Mesin Bordir",    "jam",   {1.0, 2.0}, "<=", 64.0}
-        };
-    } else if (pilihanMenu == 2) {
-        // Data Contoh Usaha Roti Rumahan
+        // Data Utama: Usaha Roti Rumahan (Roti Keju & Roti Coklat)
         totalProduk        = 2;
         daftarNamaProduk   = {"Roti Keju", "Roti Coklat"};
         daftarSatuanProduk = {"buah", "buah"};
@@ -536,6 +523,18 @@ int main() {
             {"Tepung Terigu",              "gram",  {100.0, 100.0}, "<=", 5000.0},
             {"Gula Pasir",                 "gram",  {20.0,  30.0},  "<=", 1200.0},
             {"Waktu Pengolahan & Pengisian","menit", {3.0,   2.0},   "<=", 120.0}
+        };
+    } else if (pilihanMenu == 2) {
+        // Data Alternatif: UMKM Konveksi Busana (Kemeja Batik & Tunik Modern)
+        totalProduk        = 2;
+        daftarNamaProduk   = {"Kemeja Batik", "Tunik Modern"};
+        daftarSatuanProduk = {"potong", "potong"};
+        keuntunganPerUnit  = {65000.0, 85000.0};
+
+        daftarKendala = {
+            {"Bahan Baku Kain", "meter", {2.0, 2.5}, "<=", 95.0},
+            {"Jam Kerja Jahit", "jam",   {3.0, 2.0}, "<=", 120.0},
+            {"Mesin Bordir",    "jam",   {1.0, 2.0}, "<=", 64.0}
         };
     } else {
         totalProduk = bacaBilanganBulat("\nBerapa jenis produk yang dibuat? (minimal 2): ", 2, 50);
@@ -625,15 +624,32 @@ int main() {
     }
 
     if (totalProduk == 2 && daftarKendala.size() >= 2) {
+        vector<int> kendalaBottleneck;
+        for (int i = 0; i < static_cast<int>(daftarKendala.size()); i++) {
+            double pakai = 0.0;
+            for (int p = 0; p < totalProduk; p++) {
+                pakai += daftarKendala[i].kebutuhanPerProduk[p] * rekomendasiProduksi[p];
+            }
+            if (fabs(daftarKendala[i].batasKapasitas - pakai) < 0.01) {
+                kendalaBottleneck.push_back(i);
+            }
+        }
+        int idxK1 = 0;
+        int idxK2 = 1;
+        if (kendalaBottleneck.size() >= 2) {
+            idxK1 = kendalaBottleneck[0];
+            idxK2 = kendalaBottleneck[1];
+        } else if (daftarKendala.size() >= 3) {
+            idxK2 = 2;
+        }
+
         double titikPotongProduk1 = 0.0, titikPotongProduk2 = 0.0;
-        // Hitung titik potong garis kendala 1 & kendala 3 (atau 1 & 2) dengan Eliminasi Gauss-Jordan
-        int idxKendala2 = (daftarKendala.size() >= 3) ? 2 : 1;
         if (hitungTitikPotongSPL(
-                daftarKendala[0].kebutuhanPerProduk[0], daftarKendala[0].kebutuhanPerProduk[1], daftarKendala[0].batasKapasitas,
-                daftarKendala[idxKendala2].kebutuhanPerProduk[0], daftarKendala[idxKendala2].kebutuhanPerProduk[1], daftarKendala[idxKendala2].batasKapasitas,
+                daftarKendala[idxK1].kebutuhanPerProduk[0], daftarKendala[idxK1].kebutuhanPerProduk[1], daftarKendala[idxK1].batasKapasitas,
+                daftarKendala[idxK2].kebutuhanPerProduk[0], daftarKendala[idxK2].kebutuhanPerProduk[1], daftarKendala[idxK2].batasKapasitas,
                 titikPotongProduk1, titikPotongProduk2)) {
             cout << "\n4. Verifikasi Titik Potong SPL (Eliminasi Gauss-Jordan "
-                 << daftarKendala[0].namaKendala << " & " << daftarKendala[idxKendala2].namaKendala << "): ("
+                 << daftarKendala[idxK1].namaKendala << " & " << daftarKendala[idxK2].namaKendala << "): ("
                  << titikPotongProduk1 << ", " << titikPotongProduk2 << ")\n";
         }
     }

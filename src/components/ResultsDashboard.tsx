@@ -162,7 +162,9 @@ export function ResultsDashboard({ onOpenExport }: ResultsDashboardProps) {
               1. Rencana Produksi yang Direkomendasikan
             </h3>
             <span className="text-xs text-ink-muted">
-              Alokasi produk paling menguntungkan
+              {apakahMaksimalkan
+                ? 'Alokasi produk paling menguntungkan'
+                : 'Alokasi bahan dengan biaya terendah'}
             </span>
           </div>
 
@@ -194,12 +196,14 @@ export function ResultsDashboard({ onOpenExport }: ResultsDashboardProps) {
                       {formatAngka(jumlah)} {satuan}
                     </div>
                     <div className="text-xs text-ink-muted mt-0.5">
-                      Untung: {formatMataUangRupiah(untung)} per {satuan}
+                      {apakahMaksimalkan ? 'Untung' : 'Biaya'}: {formatMataUangRupiah(untung)} per {satuan}
                     </div>
                   </div>
 
                   <div className="border-t border-border pt-2 text-xs flex justify-between items-center text-ink">
-                    <span className="text-ink-muted">Kontribusi Total:</span>
+                    <span className="text-ink-muted">
+                      {apakahMaksimalkan ? 'Kontribusi Laba:' : 'Kontribusi Biaya:'}
+                    </span>
                     <strong className="text-status-optimal tabular-nums">
                       {formatMataUangRupiah(kontribusi)}
                     </strong>

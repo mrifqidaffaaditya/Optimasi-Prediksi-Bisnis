@@ -2,15 +2,325 @@ import { TemplatBisnis } from '@/types';
 
 export const TEMPLAT_BISNIS: TemplatBisnis[] = [
   {
+    id: 'roti-rumahan',
+    nama: 'Usaha Roti Rumahan: Roti Keju & Roti Coklat',
+    name: 'Usaha Roti Rumahan: Roti Keju & Roti Coklat',
+    kategori: 'Kuliner & Bakery',
+    category: 'Kuliner & Bakery',
+    deskripsi:
+      'Optimasi Produksi Roti Keju & Roti Coklat Menggunakan Matriks Identitas (Eliminasi Gauss-Jordan): Menentukan kombinasi produksi harian Roti Keju dan Roti Coklat untuk meraup laba maksimal berdasarkan kapasitas stok tepung terigu (5.000 gr), gula pasir (1.200 gr), dan waktu pengolahan (120 menit).',
+    description:
+      'Optimasi Produksi Roti Keju & Roti Coklat Menggunakan Matriks Identitas (Eliminasi Gauss-Jordan): Menentukan kombinasi produksi harian Roti Keju dan Roti Coklat untuk meraup laba maksimal berdasarkan kapasitas stok tepung terigu (5.000 gr), gula pasir (1.200 gr), dan waktu pengolahan (120 menit).',
+    tujuanBisnis: 'MAKSIMALKAN_UNTUNG',
+    objective: 'MAKSIMALKAN_UNTUNG',
+    daftarProduk: [
+      {
+        id: 'p1',
+        nama: 'Roti Keju',
+        name: 'Roti Keju',
+        keuntungan: 6000,
+        profit: 6000,
+        satuan: 'buah',
+        unit: 'buah',
+        hanyaJumlahUtuh: true,
+        integerOnly: true,
+      },
+      {
+        id: 'p2',
+        nama: 'Roti Coklat',
+        name: 'Roti Coklat',
+        keuntungan: 5000,
+        profit: 5000,
+        satuan: 'buah',
+        unit: 'buah',
+        hanyaJumlahUtuh: true,
+        integerOnly: true,
+      },
+    ],
+    products: [
+      {
+        id: 'p1',
+        nama: 'Roti Keju',
+        name: 'Roti Keju',
+        keuntungan: 6000,
+        profit: 6000,
+        satuan: 'buah',
+        unit: 'buah',
+        hanyaJumlahUtuh: true,
+        integerOnly: true,
+      },
+      {
+        id: 'p2',
+        nama: 'Roti Coklat',
+        name: 'Roti Coklat',
+        keuntungan: 5000,
+        profit: 5000,
+        satuan: 'buah',
+        unit: 'buah',
+        hanyaJumlahUtuh: true,
+        integerOnly: true,
+      },
+    ],
+    daftarSumberDaya: [
+      {
+        id: 'r1',
+        nama: 'Tepung Terigu',
+        name: 'Tepung Terigu',
+        kapasitas: 5000.0,
+        capacity: 5000.0,
+        satuan: 'gram',
+        unit: 'gram',
+        jenisBatasan: 'TIDAK_LEBIH_DARI',
+        type: 'LEQ',
+      },
+      {
+        id: 'r2',
+        nama: 'Gula Pasir',
+        name: 'Gula Pasir',
+        kapasitas: 1200.0,
+        capacity: 1200.0,
+        satuan: 'gram',
+        unit: 'gram',
+        jenisBatasan: 'TIDAK_LEBIH_DARI',
+        type: 'LEQ',
+      },
+      {
+        id: 'r3',
+        nama: 'Waktu Pengolahan & Pengisian',
+        name: 'Waktu Pengolahan & Pengisian',
+        kapasitas: 120.0,
+        capacity: 120.0,
+        satuan: 'menit',
+        unit: 'menit',
+        jenisBatasan: 'TIDAK_LEBIH_DARI',
+        type: 'LEQ',
+      },
+    ],
+    resources: [
+      {
+        id: 'r1',
+        nama: 'Tepung Terigu',
+        name: 'Tepung Terigu',
+        kapasitas: 5000.0,
+        capacity: 5000.0,
+        satuan: 'gram',
+        unit: 'gram',
+        jenisBatasan: 'TIDAK_LEBIH_DARI',
+        type: 'LEQ',
+      },
+      {
+        id: 'r2',
+        nama: 'Gula Pasir',
+        name: 'Gula Pasir',
+        kapasitas: 1200.0,
+        capacity: 1200.0,
+        satuan: 'gram',
+        unit: 'gram',
+        jenisBatasan: 'TIDAK_LEBIH_DARI',
+        type: 'LEQ',
+      },
+      {
+        id: 'r3',
+        nama: 'Waktu Pengolahan & Pengisian',
+        name: 'Waktu Pengolahan & Pengisian',
+        kapasitas: 120.0,
+        capacity: 120.0,
+        satuan: 'menit',
+        unit: 'menit',
+        jenisBatasan: 'TIDAK_LEBIH_DARI',
+        type: 'LEQ',
+      },
+    ],
+    matriksPemakaian: {
+      p1: {
+        r1: 100.0, // 100 gram tepung terigu per roti keju
+        r2: 20.0,  // 20 gram gula pasir per roti keju
+        r3: 3.0,   // 3 menit waktu pengolahan per roti keju
+      },
+      p2: {
+        r1: 100.0, // 100 gram tepung terigu per roti coklat
+        r2: 30.0,  // 30 gram gula pasir per roti coklat
+        r3: 2.0,   // 2 menit waktu pengolahan per roti coklat
+      },
+    },
+    usage: {
+      p1: {
+        r1: 100.0,
+        r2: 20.0,
+        r3: 3.0,
+      },
+      p2: {
+        r1: 100.0,
+        r2: 30.0,
+        r3: 2.0,
+      },
+    },
+  },
+  {
+    id: 'pakan-ternak-minimasi',
+    nama: 'Formulasi Pakan Ternak (Minimasi Biaya)',
+    name: 'Formulasi Pakan Ternak (Minimasi Biaya)',
+    kategori: 'Peternakan & Agroindustri',
+    category: 'Peternakan & Agroindustri',
+    deskripsi:
+      'Studi Kasus Minimasi Biaya: Menentukan formulasi campuran Konsentrat Kedelai dan Dedak Jagung & Padi untuk menekan total biaya pembelian pakan serendah mungkin, dengan syarat wajib memenuhi batas minimum nutrisi protein kasar (≥ 24 unit) dan kalsium/mineral (≥ 16 unit), serta tidak melampaui kapasitas wadah mixer (≤ 12 kg).',
+    description:
+      'Studi Kasus Minimasi Biaya: Menentukan formulasi campuran Konsentrat Kedelai dan Dedak Jagung & Padi untuk menekan total biaya pembelian pakan serendah mungkin, dengan syarat wajib memenuhi batas minimum nutrisi protein kasar (≥ 24 unit) dan kalsium/mineral (≥ 16 unit), serta tidak melampaui kapasitas wadah mixer (≤ 12 kg).',
+    tujuanBisnis: 'MINIMALKAN_BIAYA',
+    objective: 'MINIMALKAN_BIAYA',
+    daftarProduk: [
+      {
+        id: 'p1',
+        nama: 'Konsentrat Kedelai',
+        name: 'Konsentrat Kedelai',
+        keuntungan: 4000, // Biaya pembelian Rp 4.000 / kg
+        profit: 4000,
+        satuan: 'kg',
+        unit: 'kg',
+        hanyaJumlahUtuh: true,
+        integerOnly: true,
+      },
+      {
+        id: 'p2',
+        nama: 'Dedak Jagung & Padi',
+        name: 'Dedak Jagung & Padi',
+        keuntungan: 3000, // Biaya pembelian Rp 3.000 / kg
+        profit: 3000,
+        satuan: 'kg',
+        unit: 'kg',
+        hanyaJumlahUtuh: true,
+        integerOnly: true,
+      },
+    ],
+    products: [
+      {
+        id: 'p1',
+        nama: 'Konsentrat Kedelai',
+        name: 'Konsentrat Kedelai',
+        keuntungan: 4000,
+        profit: 4000,
+        satuan: 'kg',
+        unit: 'kg',
+        hanyaJumlahUtuh: true,
+        integerOnly: true,
+      },
+      {
+        id: 'p2',
+        nama: 'Dedak Jagung & Padi',
+        name: 'Dedak Jagung & Padi',
+        keuntungan: 3000,
+        profit: 3000,
+        satuan: 'kg',
+        unit: 'kg',
+        hanyaJumlahUtuh: true,
+        integerOnly: true,
+      },
+    ],
+    daftarSumberDaya: [
+      {
+        id: 'r1',
+        nama: 'Target Protein Kasar',
+        name: 'Target Protein Kasar',
+        kapasitas: 24.0,
+        capacity: 24.0,
+        satuan: 'unit',
+        unit: 'unit',
+        jenisBatasan: 'PALING_SEDIKIT',
+        type: 'GEQ',
+      },
+      {
+        id: 'r2',
+        nama: 'Target Mineral & Kalsium',
+        name: 'Target Mineral & Kalsium',
+        kapasitas: 16.0,
+        capacity: 16.0,
+        satuan: 'unit',
+        unit: 'unit',
+        jenisBatasan: 'PALING_SEDIKIT',
+        type: 'GEQ',
+      },
+      {
+        id: 'r3',
+        nama: 'Kapasitas Wadah Mixer',
+        name: 'Kapasitas Wadah Mixer',
+        kapasitas: 12.0,
+        capacity: 12.0,
+        satuan: 'kg',
+        unit: 'kg',
+        jenisBatasan: 'TIDAK_LEBIH_DARI',
+        type: 'LEQ',
+      },
+    ],
+    resources: [
+      {
+        id: 'r1',
+        nama: 'Target Protein Kasar',
+        name: 'Target Protein Kasar',
+        kapasitas: 24.0,
+        capacity: 24.0,
+        satuan: 'unit',
+        unit: 'unit',
+        jenisBatasan: 'PALING_SEDIKIT',
+        type: 'GEQ',
+      },
+      {
+        id: 'r2',
+        nama: 'Target Mineral & Kalsium',
+        name: 'Target Mineral & Kalsium',
+        kapasitas: 16.0,
+        capacity: 16.0,
+        satuan: 'unit',
+        unit: 'unit',
+        jenisBatasan: 'PALING_SEDIKIT',
+        type: 'GEQ',
+      },
+      {
+        id: 'r3',
+        nama: 'Kapasitas Wadah Mixer',
+        name: 'Kapasitas Wadah Mixer',
+        kapasitas: 12.0,
+        capacity: 12.0,
+        satuan: 'kg',
+        unit: 'kg',
+        jenisBatasan: 'TIDAK_LEBIH_DARI',
+        type: 'LEQ',
+      },
+    ],
+    matriksPemakaian: {
+      p1: {
+        r1: 3.0, // 3 unit protein per kg konsentrat kedelai
+        r2: 1.0, // 1 unit mineral per kg konsentrat kedelai
+        r3: 1.0, // 1 kg kapasitas wadah mixer
+      },
+      p2: {
+        r1: 2.0, // 2 unit protein per kg dedak jagung
+        r2: 2.0, // 2 unit mineral per kg dedak jagung
+        r3: 1.0, // 1 kg kapasitas wadah mixer
+      },
+    },
+    usage: {
+      p1: {
+        r1: 3.0,
+        r2: 1.0,
+        r3: 1.0,
+      },
+      p2: {
+        r1: 2.0,
+        r2: 2.0,
+        r3: 1.0,
+      },
+    },
+  },
+  {
     id: 'konveksi-karya-busana',
-    nama: 'UMKM Konveksi Karya Busana (UNNES Kelompok 9)',
-    name: 'UMKM Konveksi Karya Busana (UNNES Kelompok 9)',
+    nama: 'UMKM Konveksi Busana (Kemeja & Tunik)',
+    name: 'UMKM Konveksi Busana (Kemeja & Tunik)',
     kategori: 'Manufaktur Busana & Tekstil',
     category: 'Manufaktur Busana & Tekstil',
     deskripsi:
-      'Kasus Inti Kelompok 9 Matematika Dasar UNNES: Menentukan kombinasi produksi Kemeja Batik dan Tunik Modern untuk meraup laba maksimal berdasarkan stok kain katun, jam kerja jahit, dan mesin bordir.',
+      'Menentukan kombinasi produksi Kemeja Batik dan Tunik Modern untuk meraup laba maksimal berdasarkan stok kain katun, jam kerja jahit, dan mesin bordir.',
     description:
-      'Kasus Inti Kelompok 9 Matematika Dasar UNNES: Menentukan kombinasi produksi Kemeja Batik dan Tunik Modern untuk meraup laba maksimal berdasarkan stok kain katun, jam kerja jahit, dan mesin bordir.',
+      'Menentukan kombinasi produksi Kemeja Batik dan Tunik Modern untuk meraup laba maksimal berdasarkan stok kain katun, jam kerja jahit, dan mesin bordir.',
     tujuanBisnis: 'MAKSIMALKAN_UNTUNG',
     objective: 'MAKSIMALKAN_UNTUNG',
     daftarProduk: [

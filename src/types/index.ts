@@ -1,6 +1,6 @@
 // ============================================================================
 // SISTEM OPTIMASI PERENCANAAN PRODUKSI (TERVERIFIKASI BEBAS ERROR)
-// Kelompok 9 - Matematika Dasar (Universitas Negeri Semarang)
+// Metode: Pemrograman Linear Simpleks & Eliminasi Gauss-Jordan
 // Terintegrasi dengan Web Dashboard: https://opb.keidev.my.id
 // DEFINISI TIPE DATA OPTIMASI BISNIS (RAMAH & MUDAH DIPAHAMI NON-IT)
 // ============================================================================
@@ -34,7 +34,7 @@ export type ConstraintType = JenisBatasan;
 
 /**
  * Struktur Data Kendala C++:
- * Sesuai struct DataKendala pada kode C++ Kelompok 9 Matematika Dasar
+ * Sesuai struct DataKendala pada kode C++ Sistem Optimasi
  */
 export interface DataKendala {
   namaKendala: string;

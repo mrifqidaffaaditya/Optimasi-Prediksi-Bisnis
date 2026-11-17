@@ -627,7 +627,7 @@ export const useBusinessStore = create<StateBisnis>()(
         loadTemplate: (idTemplat) => get().muatTemplat(idTemplat),
 
         aturUlangSemua: () => {
-          get().muatTemplat('konveksi-karya-busana');
+          get().muatTemplat('roti-rumahan');
         },
         resetAll: () => get().aturUlangSemua(),
 
@@ -875,6 +875,13 @@ export const useBusinessStore = create<StateBisnis>()(
     },
     {
       name: 'optimasi-prediksi-bisnis-storage',
+      version: 2,
+      migrate: (persistedState: any, version: number) => {
+        if (version < 2) {
+          return undefined as any;
+        }
+        return persistedState;
+      },
       partialize: (state) => ({
         tujuanBisnis: state.tujuanBisnis,
         daftarProduk: state.daftarProduk,

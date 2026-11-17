@@ -1,6 +1,6 @@
 // ============================================================================
 // SISTEM OPTIMASI PERENCANAAN PRODUKSI (TERVERIFIKASI BEBAS ERROR)
-// Kelompok 9 - Matematika Dasar (Universitas Negeri Semarang)
+// Metode: Pemrograman Linear Simpleks & Eliminasi Gauss-Jordan
 // Terintegrasi dengan Web Dashboard: https://opb.keidev.my.id
 // Seluruh fungsi inti matematika & algoritma Simpleks disatukan di sini
 // ============================================================================
@@ -202,7 +202,8 @@ export function cariProduksiOptimalDenganLog(
   totalProduk: number,
   daftarNamaProduk: string[],
   keuntunganPerUnit: number[],
-  daftarKendala: DataKendala[]
+  daftarKendala: DataKendala[],
+  apakahMinimasi: boolean = false
 ): {
   solusiDitemukan: boolean;
   status: 'OPTIMAL' | 'TIDAK_LAYAK' | 'TANPA_BATAS';
@@ -217,6 +218,7 @@ export function cariProduksiOptimalDenganLog(
   const pesanLog: string[] = [];
   const daftarIterasi: IterasiSimpleksLog[] = [];
 
+  const kataTujuan = apakahMinimasi ? 'Minimalkan Biaya' : 'Maksimalkan Keuntungan';
   pesanLog.push('[PROSES 1] INISIALISASI MODEL MATEMATIKA & FUNGSI TUJUAN');
   pesanLog.push(`  -> Jumlah Jenis Produk (Variabel Keputusan) : ${totalProduk}`);
   pesanLog.push(`  -> Jumlah Kendala Operasional               : ${totalKendala}`);
@@ -224,7 +226,7 @@ export function cariProduksiOptimalDenganLog(
   const persamaanTujuan = keuntunganPerUnit
     .map((k, i) => `${k} X${i + 1}`)
     .join(' + ');
-  pesanLog.push(`  -> Fungsi Tujuan: Maksimalkan Z = ${persamaanTujuan}`);
+  pesanLog.push(`  -> Fungsi Tujuan: ${kataTujuan} Z = ${persamaanTujuan}`);
 
   // Hitung jumlah variabel bantu (variabel sisa/slack dan variabel buatan/artifisial)
   let jumlahVariabelSisa = 0;
@@ -302,9 +304,11 @@ export function cariProduksiOptimalDenganLog(
     }
   }
 
-  // Masukkan koefisien keuntungan ke baris fungsi tujuan
+  // Masukkan koefisien ke baris fungsi tujuan
   for (let indeksProduk = 0; indeksProduk < totalProduk; indeksProduk++) {
-    tabelMatriks[totalKendala][indeksProduk] = -keuntunganPerUnit[indeksProduk];
+    tabelMatriks[totalKendala][indeksProduk] = apakahMinimasi
+      ? keuntunganPerUnit[indeksProduk]
+      : -keuntunganPerUnit[indeksProduk];
   }
 
   // Sesuaikan baris fungsi tujuan jika terdapat kendala target minimal (>=)
@@ -559,12 +563,16 @@ export function hitungSolusiOptimasi(
     };
   });
 
+  const apakahMinimasi =
+    tujuanBisnis === 'MINIMALKAN_BIAYA' || tujuanBisnis === 'MINIMIZE_COST';
+
   // Eksekusi Algoritma Simpleks Inti C++
   const hasilSimpleks = cariProduksiOptimalDenganLog(
     totalProduk,
     daftarNamaProduk,
     keuntunganPerUnit,
-    daftarKendala
+    daftarKendala,
+    apakahMinimasi
   );
 
   const waktuSelesai = performance.now();
@@ -765,15 +773,25 @@ export function hitungSolusiOptimasi(
 
   let kalimatKesimpulan = '';
   if (rincianProdukAktif) {
-    kalimatKesimpulan = `Rekomendasi terbaik: Produksi ${rincianProdukAktif} untuk mencapai keuntungan maksimal sebesar ${formatMataUangRupiah(
-      totalNilaiTujuan
-    )}.`;
-    if (penghambatUtama) {
-      kalimatKesimpulan += ` ${penghambatUtama.nama} menjadi faktor penghambat utama (terpakai penuh / bottleneck).`;
+    if (apakahMinimasi) {
+      kalimatKesimpulan = `Rekomendasi terbaik: Penggunaan ${rincianProdukAktif} untuk mencapai biaya operasional minimum sebesar ${formatMataUangRupiah(
+        totalNilaiTujuan
+      )}.`;
+      if (penghambatUtama) {
+        kalimatKesimpulan += ` ${penghambatUtama.nama} menjadi pembatas target utama yang terpenuhi penuh.`;
+      }
+    } else {
+      kalimatKesimpulan = `Rekomendasi terbaik: Produksi ${rincianProdukAktif} untuk mencapai keuntungan maksimal sebesar ${formatMataUangRupiah(
+        totalNilaiTujuan
+      )}.`;
+      if (penghambatUtama) {
+        kalimatKesimpulan += ` ${penghambatUtama.nama} menjadi faktor penghambat utama (terpakai penuh / bottleneck).`;
+      }
     }
   } else {
-    kalimatKesimpulan =
-      'Kapasitas yang ada saat ini belum memungkinkan produksi menghasilkan keuntungan positif.';
+    kalimatKesimpulan = apakahMinimasi
+      ? 'Target kebutuhan minimum belum dapat dipenuhi dengan kapasitas yang ada.'
+      : 'Kapasitas yang ada saat ini belum memungkinkan produksi menghasilkan keuntungan positif.';
   }
 
   // Verifikasi Titik Potong SPL (Kendala Terpakai Penuh / Bottleneck) menggunakan Aturan Cramer C++

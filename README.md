@@ -1,5 +1,5 @@
 # Sistem Optimasi Perencanaan Produksi (Terverifikasi Bebas Error)
-**Kelompok 9 - Matematika Dasar (Universitas Negeri Semarang)**  
+**Metode: Pemrograman Linear Simpleks & Eliminasi Gauss-Jordan (Matematika Dasar)**  
 **Terintegrasi dengan Web Dashboard:** [https://opb.keidev.my.id](https://opb.keidev.my.id)
 
 ---
@@ -84,13 +84,15 @@ g++ -O3 -Wall -Wextra cpp/main.cpp -o optimasi_produksi
 ```
 
 ### Menu Pilihan Data pada Program C++ & Python:
-* **Pilihan 1 (Kasus Utama Web):** UMKM Konveksi Karya Busana (Kemeja Batik & Tunik Modern).
+* **Pilihan 1 (Kasus Utama Web):** Usaha Roti Rumahan (Roti Keju & Roti Coklat).
+  * Keuntungan: Rp 6.000 / Roti Keju, Rp 5.000 / Roti Coklat.
+  * Kendala: Tepung Terigu (5.000 gram), Gula Pasir (1.200 gram), Waktu Pengolahan & Pengisian (120 menit).
+  * Solusi Optimal: **24 Roti Keju** & **24 Roti Coklat** (Laba Maksimal: **Rp 264.000**).
+  * Pembahasan Lengkap: Lihat berkas [STUDI-KASUS.md](STUDI-KASUS.md).
+* **Pilihan 2 (Kasus Alternatif):** UMKM Konveksi Busana (Kemeja Batik & Tunik Modern).
   * Keuntungan: Rp 65.000 / Kemeja Batik, Rp 85.000 / Tunik Modern.
   * Kendala: Bahan Baku Kain (95 m), Jam Jahit (120 jam), Mesin Bordir (64 jam).
   * Solusi Optimal: **20 Kemeja Batik** & **22 Tunik Modern** (Laba Maksimal: **Rp 3.170.000**).
-* **Pilihan 2 (Kasus Roti Rumahan):** Usaha Bakery (Roti Keju & Roti Coklat).
-  * Keuntungan: Rp 6.000 / Roti Keju, Rp 5.000 / Roti Coklat.
-  * Solusi Optimal: **24 Roti Keju** & **24 Roti Coklat** (Laba Maksimal: **Rp 264.000**).
 * **Pilihan 3:** Masukkan Data Usaha Baru Secara Manual (interaktif dengan validasi input anti-error).
 
 Program C++ secara otomatis menghasilkan berkas `hasil_optimasi.csv` yang berisi koordinat titik optimal dan perpotongan garis sumbu kendala.
@@ -116,7 +118,6 @@ Buka peramban di `http://localhost:5000`.
 
 ---
 
-## 👥 Tim Pengembang
-**Kelompok 9 - Matematika Dasar**  
-**Universitas Negeri Semarang (UNNES)**  
+## 👥 Pengembang & Lisensi
+**Sistem Optimasi Perencanaan Produksi - Matematika Dasar & Riset Operasi**  
 Dashboard: [https://opb.keidev.my.id](https://opb.keidev.my.id)

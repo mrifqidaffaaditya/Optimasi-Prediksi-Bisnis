@@ -4,9 +4,8 @@
 """
 ============================================================================
 SISTEM OPTIMASI PERENCANAAN PRODUKSI (TERVERIFIKASI BEBAS ERROR)
-Kelompok 9 - Matematika Dasar (Universitas Negeri Semarang)
-Terintegrasi dengan Web Dashboard: https://opb.keidev.my.id
 Metode: Pemrograman Linear Simpleks & Eliminasi Gauss-Jordan
+Terintegrasi dengan Web Dashboard: https://opb.keidev.my.id
 ============================================================================
 """
 
@@ -459,7 +458,7 @@ def buat_grafik_visualisasi(
         ax.set_ylim(0, max_y)
         ax.set_xlabel(f"X₁: {nama_p1} (unit)", fontsize=11, fontweight="bold")
         ax.set_ylabel(f"X₂: {nama_p2} (unit)", fontsize=11, fontweight="bold")
-        ax.set_title("Visualisasi Optimasi Perencanaan Produksi\nKelompok 9 - Matematika Dasar UNNES", fontsize=12, fontweight="bold", pad=12)
+        ax.set_title("Visualisasi Optimasi Perencanaan Produksi\nModel Optimasi Riset Operasi", fontsize=12, fontweight="bold", pad=12)
         ax.grid(True, linestyle=":", alpha=0.6)
         ax.legend(loc="upper right", fontsize=8.5, framealpha=0.9)
 
@@ -528,7 +527,7 @@ def buat_grafik_svg_html(
     svg_elements.append(f'<text x="20" y="{pad_top + plot_h / 2}" font-size="12" font-weight="bold" fill="#16202A" text-anchor="middle" transform="rotate(-90 20 {pad_top + plot_h / 2})">X₂: {nama_p2} (unit)</text>')
 
     # Judul
-    svg_elements.append(f'<text x="{width / 2}" y="28" font-size="14" font-weight="bold" fill="#1F4E5F" text-anchor="middle">Grafik Area Produksi Optimal (Kelompok 9 UNNES)</text>')
+    svg_elements.append(f'<text x="{width / 2}" y="28" font-size="14" font-weight="bold" fill="#1F4E5F" text-anchor="middle">Grafik Area Produksi Optimal (Feasible Region)</text>')
 
     # Garis Kendala
     for idx, k in enumerate(daftar_kendala):
@@ -566,7 +565,7 @@ def buat_grafik_svg_html(
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Grafik Optimasi Produksi - Kelompok 9 UNNES</title>
+  <title>Grafik Optimasi Produksi - Area Layak & Titik Optimal</title>
   <style>
     body {{ font-family: system-ui, -apple-system, sans-serif; background: #F7F6F3; margin: 0; padding: 24px; color: #16202A; display: flex; flex-direction: column; align-items: center; }}
     .card {{ background: #FFFFFF; border: 1px solid #E3E1DB; border-radius: 16px; padding: 24px; max-width: 820px; width: 100%; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }}
@@ -577,7 +576,7 @@ def buat_grafik_svg_html(
 </head>
 <body>
   <div class="card">
-    <div class="badge">Kelompok 9 - Matematika Dasar UNNES</div>
+    <div class="badge">Sistem Optimasi Perencanaan Produksi</div>
     <h1>Visualisasi Area Produksi & Titik Optimal</h1>
     <p>Titik optimal ({opt_x1:.0f} unit {nama_p1}, {opt_x2:.0f} unit {nama_p2}) menghasilkan keuntungan maksimal sebesar Rp {total_keuntungan:,.0f}.</p>
     {svg_content}
@@ -596,28 +595,17 @@ def buat_grafik_svg_html(
 def main():
     print("=" * 68)
     print("   SISTEM PERENCANAAN PRODUKSI OPTIMAL (UMKM & INDUSTRI)")
-    print("   Kelompok 9 - Matematika Dasar | Web: opb.keidev.my.id")
     print("   Metode: Pemrograman Linear Simpleks & Eliminasi Gauss-Jordan")
+    print("   Web Dashboard: https://opb.keidev.my.id")
     print("=" * 68)
     print("Pilih data perencanaan:")
-    print("  1. Kasus Utama: UMKM Konveksi Busana (Kemeja Batik & Tunik Modern)")
-    print("  2. Kasus Roti Rumahan: Usaha Bakery (Roti Keju & Roti Coklat)")
+    print("  1. Kasus Utama: Usaha Roti Rumahan (Roti Keju & Roti Coklat)")
+    print("  2. Kasus Alternatif: UMKM Konveksi Busana (Kemeja Batik & Tunik Modern)")
     print("  3. Masukkan Data Usaha Baru Secara Manual")
 
     pilihan = baca_bilangan_bulat("Pilih menu (1, 2, atau 3): ", 1, 3)
 
     if pilihan == 1:
-        total_produk = 2
-        daftar_nama_produk = ["Kemeja Batik", "Tunik Modern"]
-        daftar_satuan_produk = ["potong", "potong"]
-        keuntungan_per_unit = [65000.0, 85000.0]
-
-        daftar_kendala = [
-            DataKendala("Bahan Baku Kain", "meter", [2.0, 2.5], "<=", 95.0),
-            DataKendala("Jam Kerja Jahit", "jam",   [3.0, 2.0], "<=", 120.0),
-            DataKendala("Mesin Bordir",    "jam",   [1.0, 2.0], "<=", 64.0),
-        ]
-    elif pilihan == 2:
         total_produk = 2
         daftar_nama_produk = ["Roti Keju", "Roti Coklat"]
         daftar_satuan_produk = ["buah", "buah"]
@@ -627,6 +615,17 @@ def main():
             DataKendala("Tepung Terigu",              "gram",  [100.0, 100.0], "<=", 5000.0),
             DataKendala("Gula Pasir",                 "gram",  [20.0,  30.0],  "<=", 1200.0),
             DataKendala("Waktu Pengolahan & Pengisian","menit", [3.0,   2.0],   "<=", 120.0),
+        ]
+    elif pilihan == 2:
+        total_produk = 2
+        daftar_nama_produk = ["Kemeja Batik", "Tunik Modern"]
+        daftar_satuan_produk = ["potong", "potong"]
+        keuntungan_per_unit = [65000.0, 85000.0]
+
+        daftar_kendala = [
+            DataKendala("Bahan Baku Kain", "meter", [2.0, 2.5], "<=", 95.0),
+            DataKendala("Jam Kerja Jahit", "jam",   [3.0, 2.0], "<=", 120.0),
+            DataKendala("Mesin Bordir",    "jam",   [1.0, 2.0], "<=", 64.0),
         ]
     else:
         total_produk = baca_bilangan_bulat("\nBerapa jenis produk yang dibuat? (minimal 2): ", 2, 50)
@@ -706,8 +705,16 @@ def main():
 
     # Verifikasi Eliminasi Gauss-Jordan pada SPL
     if total_produk == 2 and len(daftar_kendala) >= 2:
-        idx2 = 2 if len(daftar_kendala) >= 3 else 1
-        k1 = daftar_kendala[0]
+        bottleneck_indices = []
+        for idx_k, kendala in enumerate(daftar_kendala):
+            terpakai = sum(kendala.kebutuhan_per_produk[p] * rekomendasi_produksi[p] for p in range(total_produk))
+            if abs(kendala.batas_kapasitas - terpakai) < 0.01:
+                bottleneck_indices.append(idx_k)
+
+        idx1 = bottleneck_indices[0] if len(bottleneck_indices) >= 1 else 0
+        idx2 = bottleneck_indices[1] if len(bottleneck_indices) >= 2 else (2 if len(daftar_kendala) >= 3 else 1)
+
+        k1 = daftar_kendala[idx1]
         k2 = daftar_kendala[idx2]
 
         sukses, px1, px2 = hitung_titik_potong_spl(

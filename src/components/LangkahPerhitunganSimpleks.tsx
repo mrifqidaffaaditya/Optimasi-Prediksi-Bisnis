@@ -64,7 +64,7 @@ export function LangkahPerhitunganSimpleks({
                 Langkah &amp; Verifikasi Perhitungan Matematis (Simpleks &amp; Eliminasi Gauss-Jordan)
               </h3>
               <span className="rounded-md bg-accent-light px-2 py-0.5 text-[11px] font-semibold text-accent">
-                Kelompok 9 UNNES
+                Metode Eliminasi Gauss-Jordan
               </span>
               <span className="rounded-md bg-status-optimal-light px-2 py-0.5 text-[11px] font-bold text-status-optimal flex items-center gap-1">
                 <CheckCircle2 className="h-3 w-3" />
@@ -290,7 +290,7 @@ export function LangkahPerhitunganSimpleks({
                 </div>
 
                 <p className="text-xs text-ink leading-relaxed">
-                  Pada program C++ Kelompok 9 UNNES, fungsi <code className="rounded bg-bg px-1.5 py-0.5 text-accent font-mono font-bold">hitungTitikPotongSPL</code> menyelesaikan Sistem Persamaan Linear 2 variabel antara dua kendala operasional yang menjadi penghambat utama (bottleneck) menggunakan metode <strong>Eliminasi Gauss-Jordan</strong> melalui Operasi Baris Elementer (OBE):
+                  Pada program C++, fungsi <code className="rounded bg-bg px-1.5 py-0.5 text-accent font-mono font-bold">hitungTitikPotongSPL</code> menyelesaikan Sistem Persamaan Linear 2 variabel antara dua kendala operasional yang menjadi penghambat utama (bottleneck) menggunakan metode <strong>Eliminasi Gauss-Jordan</strong> melalui Operasi Baris Elementer (OBE):
                 </p>
 
                 {/* Notasi & Tahapan Eliminasi Gauss-Jordan */}
@@ -387,7 +387,7 @@ export function LangkahPerhitunganSimpleks({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-ink-muted font-medium">
-                  Output eksekusi persis terminal konsol C++ (Kelompok 9 UNNES)
+                  Output eksekusi persis terminal konsol C++
                 </span>
                 <button
                   onClick={salinLogKeClipboard}

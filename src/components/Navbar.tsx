@@ -50,7 +50,7 @@ export function Navbar({
                 <span className="hidden sm:inline">Optimasi Perencanaan Produksi</span>
               </span>
               <span className="hidden xl:inline-block rounded bg-accent-light px-1.5 py-0.5 text-[10px] font-semibold text-accent whitespace-nowrap">
-                Kelompok 9 UNNES
+                Riset Operasi &amp; Optimasi
               </span>
             </div>
             <p className="hidden 2xl:block text-[11px] text-ink-muted truncate max-w-[220px]">
@@ -134,7 +134,20 @@ export function Navbar({
                     }}
                     className="w-full text-left rounded-lg px-3 py-2 text-xs hover:bg-bg transition-colors"
                   >
-                    <div className="font-semibold text-ink">{tmpl.nama || tmpl.name}</div>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="font-semibold text-ink truncate">{tmpl.nama || tmpl.name}</div>
+                      <span
+                        className={`shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold ${
+                          tmpl.tujuanBisnis === 'MINIMALKAN_BIAYA' || tmpl.objective === 'MINIMALKAN_BIAYA'
+                            ? 'bg-amber-100 text-amber-800'
+                            : 'bg-emerald-100 text-emerald-800'
+                        }`}
+                      >
+                        {tmpl.tujuanBisnis === 'MINIMALKAN_BIAYA' || tmpl.objective === 'MINIMALKAN_BIAYA'
+                          ? 'Minimasi'
+                          : 'Maksimasi'}
+                      </span>
+                    </div>
                     <div className="text-[11px] text-ink-muted truncate">
                       {tmpl.deskripsi || tmpl.description}
                     </div>

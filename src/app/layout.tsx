@@ -10,7 +10,7 @@ const ibmPlexSans = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'Sistem Optimasi Perencanaan Produksi - Kelompok 9 Matematika Dasar UNNES',
+  title: 'Sistem Optimasi Perencanaan Produksi - Metode Simpleks & Gauss-Jordan',
   description: 'Sistem optimasi alokasi sumber daya dan perencanaan produksi optimal berbasis web client-side, terintegrasi dengan implementasi C++ bebas error (opb.keidev.my.id).',
 };
 
